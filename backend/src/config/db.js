@@ -1,5 +1,5 @@
-
 const mongoose = require("mongoose");
+require("node:dns").setServers(["8.8.8.8", "1.1.1.1"]); // Keeps teammate's network optimization fix
 
 const connectDB = async () => {
   try {

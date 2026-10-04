@@ -84,7 +84,7 @@ app.use("/api/data", dataRoutes);
 app.use("/api/issues", issueRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
-
+app.use("/api/leaderboard", require("./routes/leaderboard.routes"));
 // Server Health Validation check route
 app.get("/health", (req, res) => {
   res.status(200).json({ sucess: true, status: "healthy" });
