@@ -8,13 +8,14 @@ const Badge = require("../models/Badge");
 const { calculateUpdatedStreak , getFormattedDate } = require("../services/metricService");
 const { getParticipantBadges } = require("./badgeController");
 
+const mongoose =require("mongoose");
 
 //GET public profile with badge information
 async function getPublicProfile(req,res){
   try{
     const { username } = req.params;
 
-    const participant = await Participant.findOneAndDelete({ username });
+    const participant = await Participant.findOne({ username }).read("primary");
     if(!participant){
       return res.status(404).json({success: false , message: "contributer not found"});
     }
@@ -35,7 +36,7 @@ async function getPublicProfile(req,res){
     });
 
     res.status(200).json({
-      sucess: true,
+      success: true,
       data:{
         username: participant.username,
         githubUrl: participant.githubUrl,
@@ -127,63 +128,122 @@ async function handleGitHubWebhook(req,res){
 }
 
 
+//helper function to handle  internal calls to API endpoints
+async function fetchTeammateData(endpoint){
+  try{
+    const response = await fetch(`http://localhost:5000${endpoint}`);
+    if(!response.ok) return null;
+  return await response.json();
+  }
+  catch(error){
+    console.error(`Failed to fetch from teammates(sai's) endpoint ${endpoint}:`,error.message);
+    return null;
+  }
+}
+
+
+
 /* this function takes participantId as parem and find the participant*/
+
 async function syncParticipantActivity(req, res) {
   try {
     const { participantId } = req.params;
 
-    const participant = await Participant.findById(participantId);
+    // 1. Find participant and ensure they have a linked githubId
+    const  participant = await Participant.findById(participantId);
     if (!participant) {
       return res.status(404).json({ success: false, message: "Participant not found" });
     }
 
-    // 1. Evaluate only Milestones dynamically (Includes the new login/commit milestones)
+    const githubId = participant.githubId || participant.username; // Fallback mapping
+
+    // 2. Fetch data sets concurrently from your teammate's endpoints
+    const [prData, activityData, reviewData] = await Promise.all([
+      fetchTeammateData(`/api/users/${githubId}/pull-requests`),
+      fetchTeammateData(`/api/users/${githubId}/activity`),
+      fetchTeammateData(`/api/users/${githubId}/reviews`)
+    ]);
+
+    // 3. Process Pull Request Metrics & Unique Repository Calculations
+    if (prData && Array.isArray(prData)) {
+      // Filter for successfully merged pull requests
+      const mergedPRsList = prData.filter(pr => pr.merged === true || pr.state === 'closed');
+      participant.stats.mergedPRs = mergedPRsList.length;
+
+      // Extract unique repository full names from the PR payloads
+      const uniqueRepos = new Set(mergedPRsList.map(pr => pr.repository?.full_name).filter(Boolean));
+      participant.contributedReposList = Array.from(uniqueRepos);
+      participant.stats.uniqueReposContributed = uniqueRepos.size;
+    }
+
+    // 4. Process Reviews Metric (Optional milestone check)
+    if (reviewData && Array.isArray(reviewData)) {
+      participant.stats.codeReviews = reviewData.length;
+    }
+
+    // 5. Process Commits and Dashboard Interaction Streaks from Activity Log
+    if (activityData && activityData.activityLog) {
+      // Assume teammate stores arrays of raw date strings ['YYYY-MM-DD', ...]
+      const remoteCommits = activityData.activityLog.commitDates || [];
+      const remoteLogins = activityData.activityLog.loginDates || [];
+
+      // Sync explicit raw history items cleanly
+      participant.activityLog.commitDates = [...new Set([...participant.activityLog.commitDates, ...remoteCommits])].sort();
+      participant.activityLog.loginDates = [...new Set([...participant.activityLog.loginDates, ...remoteLogins])].sort();
+
+      // Recalculate calendar streak counters dynamically using the historical arrays
+      let currentCommitStreak = 0;
+      let currentLoginStreak = 0;
+
+      // Evaluate historical timeline logs to determine accurate streak numbers
+      participant.activityLog.commitDates.forEach((_, index) => {
+        const historySlice = participant.activityLog.commitDates.slice(0, index + 1);
+        const res = calculateUpdatedStreak(historySlice, 'COMMIT');
+        if (res === true) currentCommitStreak += 1;
+        else if (res === false) currentCommitStreak = 1;
+      });
+
+      participant.activityLog.loginDates.forEach((_, index) => {
+        const historySlice = participant.activityLog.loginDates.slice(0, index + 1);
+        const res = calculateUpdatedStreak(historySlice, 'LOGIN');
+        if (res === true) currentLoginStreak += 1;
+        else if (res === false) currentLoginStreak = 1;
+      });
+
+      participant.stats.commitStreak = currentCommitStreak;
+      participant.stats.loginStreak = currentLoginStreak;
+    }
+
+    // 6. Calculate total accrued points based on new metrics calculations
+    // Example formula: 50pts per merged PR, 20pts per unique repo, 10pts per active commit day
+    participant.points = (participant.stats.mergedPRs * 50) + 
+                         (participant.stats.uniqueReposContributed * 20) + 
+                         (participant.stats.commitStreak * 10) + 
+                         (participant.stats.loginStreak * 5);
+
+    // Save newly synchronized state data definitions down to MongoDB Atlas
+    await participant.save();
+
+    // 7. Run evaluation engine to award milestone badges based on fresh metrics values
     const newlyEarnedMilestones = await evaluateMilestoneBadges(participantId);
-
-    // 2. Ranks badges are calculated at event end.
-
-    const updatedParticipant = await Participant.findById(participantId);
 
     res.status(200).json({
       success: true,
-      message: "Activity synchronized and milestones evaluated successfully.",
+      message: "Data successfully synchronized from GitHub API endpoints!",
       data: {
-        username: updatedParticipant.username,
-        stats: updatedParticipant.stats,
+        username: participant.username,
+        points: participant.points,
+        stats: participant.stats,
         newlyEarnedMilestones: newlyEarnedMilestones.map(b => b.key),
-        totalMilestonesEarned: updatedParticipant.badges.length
+        totalMilestonesCount: participant.badges.length
       }
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    console.error("Refactored Sync Error:", error);
+    res.status(500).json({ success: false, message: "Internal server error during GitHub API sync." });
   }
 }
 
-/* decides the final top 3 rank badges */
-async function finalizeEventRankings(req, res) {
-  try {
-    // Execute the leaderboard rank calculations once at the end of the event
-    await updateRankBadges();
-
-    // Fetch the final top 3 records to return confirmation data
-    const topThree = await Participant.find({ currentRank: { $in: [1, 2, 3] } }).sort({ currentRank: 1 });
-
-    res.status(200).json({
-      success: true,
-      message: "Event finalized! Dynamic rank badges successfully frozen and awarded to the podium winners.",
-      podium: topThree.map(p => ({
-        rank: p.currentRank,
-        username: p.username,
-        points: p.points,
-        badge: p.currentRankBadge
-      }))
-    });
-  } catch (error) {
-    console.error("Finalization failed:", error);
-    res.status(500).json({ success: false, message: "Failed to finalize event rankings" });
-  }
-}
 
 
 async function getLeaderboard(req, res) {
@@ -224,7 +284,16 @@ async function trackParticipantActivity(req, res) {
       });
     }
 
-    const participant = await Participant.findById(participantId);
+    //  CRUCIAL FIX: Validate and safely cast the incoming plain string ID 
+    // into a proper Mongoose ObjectId structure before running the database query.
+    if (!mongoose.Types.ObjectId.isValid(participantId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid format provided for participantId parameter."
+      });
+    }
+
+    const participant = await Participant.findById(participantId).read("primary");
     if (!participant) {
       return res.status(404).json({ success: false, message: "Participant not found" });
     }
@@ -366,6 +435,31 @@ async function registerParticipant(req,res){
       success: false,
       message: "Server error during registration."
     });
+  }
+}
+
+
+
+async function finalizeEventRankings(req, res) {
+  try {
+    const { updateRankBadges } = require("../services/rankBadgeService");
+    await updateRankBadges();
+
+    const topThree = await Participant.find({ currentRank: { $in: [1, 2, 3] } }).sort({ currentRank: 1 });
+
+    res.status(200).json({
+      success: true,
+      message: "Event finalized! Dynamic rank badges successfully frozen and awarded to the podium winners.",
+      podium: topThree.map(p => ({
+        rank: p.currentRank,
+        username: p.username,
+        points: p.points,
+        badge: p.currentRankBadge
+      }))
+    });
+  } catch (error) {
+    console.error("Finalization failed:", error);
+    res.status(500).json({ success: false, message: "Failed to finalize event rankings" });
   }
 }
 

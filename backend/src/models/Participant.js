@@ -12,6 +12,11 @@ const participantSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    gihubId:{
+      type: String,
+      trim: true,
+      default:null
+    },
     points: {
       type: Number,
       default: 0,
