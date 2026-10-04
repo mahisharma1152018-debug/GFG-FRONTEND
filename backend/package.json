@@ -7,7 +7,8 @@
     "test": "jest --runInBand --detectOpenHandles",
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
-    "tunnel": "ngrok http 5000"
+    "tunnel": "ngrok http 5000",
+    "simulate": "node src/test/simulation.js"
   },
   "keywords": [],
   "author": "",

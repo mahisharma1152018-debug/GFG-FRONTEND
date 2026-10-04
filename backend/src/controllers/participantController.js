@@ -131,7 +131,8 @@ async function handleGitHubWebhook(req,res){
 //helper function to handle  internal calls to API endpoints
 async function fetchTeammateData(endpoint){
   try{
-    const response = await fetch(`http://localhost:5000${endpoint}`);
+     const basePort = process.env.NODE_ENV === 'test' ? '5055' : '5055'; 
+    const response = await fetch(`http://localhost:${basePort}${endpoint}`);
     if(!response.ok) return null;
   return await response.json();
   }

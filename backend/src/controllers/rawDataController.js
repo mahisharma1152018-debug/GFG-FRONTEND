@@ -63,8 +63,50 @@ async function getRepositoryLabels(req, res) {
 
 async function getUser(req, res) { const record = await User.findOne({ githubId: Number(req.params.githubId) }).lean(); return record ? res.json({ success: true, data: record }) : res.status(404).json({ success: false, message: "User not found" }); }
 const userContributions = (req, res) => listModel(req, res, ContributionEvent, "occurredAt", () => ({ githubUserId: Number(req.params.githubId) }));
-const userPullRequests = (req, res) => listModel(req, res, PullRequest, "createdAtGithub", () => ({ "author.githubId": Number(req.params.githubId) }), { githubPayload: 0 });
-const userReviews = (req, res) => listModel(req, res, Review, "submittedAt", () => ({ "reviewer.githubId": Number(req.params.githubId) }));
+
+
+
+//const userPullRequests = (req, res) => listModel(req, res, PullRequest, "createdAtGithub", () => ({ "author.githubId": Number(req.params.githubId) }), { githubPayload: 0 });
+async function userPullRequests(req, res) {
+  try {
+    const { githubId } = req.params;
+    
+    // Convert string parameter to Number safely to prevent CastError crashes
+    const numericId = Number(githubId);
+    if (isNaN(numericId)) {
+      return res.status(400).json({ success: false, message: "Invalid dynamic githubId format parameter." });
+    }
+
+    const prs = await PullRequest.find({ "author.githubId": numericId }).read("primary");
+    res.status(200).json(prs);
+  } catch (error) {
+    console.error("User PR Fetch Error:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
+
+
+
+//const userReviews = (req, res) => listModel(req, res, Review, "submittedAt", () => ({ "reviewer.githubId": Number(req.params.githubId) }));
+async function userReviews(req, res) {
+  try {
+    const { githubId } = req.params;
+    
+    const numericId = Number(githubId);
+    if (isNaN(numericId)) {
+      return res.status(400).json({ success: false, message: "Invalid dynamic githubId format parameter." });
+    }
+
+    const reviews = await Review.find({ "reviewer.githubId": numericId }).read("primary");
+    res.status(200).json(reviews);
+  } catch (error) {
+    console.error("User Reviews Fetch Error:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
+
+
+
 async function userComments(req, res) {
 	try {
 		const { page, limit, skip } = pageArgs(req.query);
@@ -99,7 +141,35 @@ async function userRepositories(req, res) {
     return res.status(500).json({ success: false, message: "Failed to fetch user repositories" });
   }
 }
-const userActivity = userContributions;
+//const userActivity = userContributions;
+
+async function userActivity(req, res) {
+  try {
+    const { githubId } = req.params;
+    
+    const numericId = Number(githubId);
+    if (isNaN(numericId)) {
+      return res.status(400).json({ success: false, message: "Invalid dynamic githubId format parameter." });
+    }
+
+    // Adjust these field queries to match whatever schema layout your teammate implemented
+    const commits = await Commit.find({ "author.githubId": numericId }).read("primary");
+    
+    // Formulate a clean activity array log map structure to return to the sync dashboard service
+    const commitDates = commits.map(c => new Date(c.committedAt).toISOString().split('T')[0]);
+
+    res.status(200).json({
+      success: true,
+      activityLog: {
+        commitDates: [...new Set(commitDates)],
+        loginDates: [] // Populate historical dashboard elements if tracking configurations exist
+      }
+    });
+  } catch (error) {
+    console.error("User Activity Fetch Error:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
 
 module.exports = {
   listModel,
