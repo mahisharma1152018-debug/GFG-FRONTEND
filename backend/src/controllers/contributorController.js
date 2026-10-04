@@ -1,6 +1,6 @@
-import PullRequest from "../models/PullRequest.js";
-import Commit from "../models/Commit.js";
-import { dateRange } from "../utils/dates.js";
+const PullRequest = require("../models/PullRequest.js");
+const Commit = require("../models/Commit.js");
+const { dateRange } = require("../utils/dates.js");
 
 const BOT = /\[bot\]$/i;
 
@@ -139,7 +139,7 @@ async function computeContributors({ repo, range, includeBots, username }) {
 /*
  * GET /api/contributors?repo=owner/name&since=&until=&includeBots=true
  */
-export async function getContributors(req, res) {
+async function getContributors(req, res) {
   try {
     const data = await computeContributors({
       repo: req.query.repo,
@@ -157,7 +157,7 @@ export async function getContributors(req, res) {
 /*
  * GET /api/contributors/:username
  */
-export async function getContributor(req, res) {
+async function getContributor(req, res) {
   try {
     const { username } = req.params;
     const repo = req.query.repo;
@@ -192,3 +192,8 @@ export async function getContributor(req, res) {
     res.status(500).json({ success: false, message: "Failed to fetch contributor" });
   }
 }
+
+module.exports = {
+  getContributors,
+  getContributor,
+};

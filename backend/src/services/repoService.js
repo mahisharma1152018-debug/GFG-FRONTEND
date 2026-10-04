@@ -1,5 +1,5 @@
-import { getGithubConfig } from "../config/github.js";
-import { getRepository, listRepositories } from "./githubService.js";
+const { getGithubConfig } = require("../config/github.js");
+const { getRepository, listRepositories } = require("./githubService.js");
 
 const CACHE_MS = 5 * 60 * 1000;
 let cache = { repos: null, at: 0 };
@@ -18,7 +18,7 @@ function toRepoInfo(meta) {
  *   GITHUB_REPOS=*  -> everything in the account (auto-discovers new repos)
  *   GITHUB_REPOS=a,b -> only those
  */
-export async function getTrackedRepos({ force = false } = {}) {
+async function getTrackedRepos({ force = false } = {}) {
   if (!force && cache.repos && Date.now() - cache.at < CACHE_MS) {
     return cache.repos;
   }
@@ -58,7 +58,7 @@ export async function getTrackedRepos({ force = false } = {}) {
 /*
  * Cheap check used by the webhook (no API call).
  */
-export function isRepoTracked(fullName) {
+function isRepoTracked(fullName) {
   const config = getGithubConfig();
   const lower = fullName.toLowerCase();
 
@@ -72,3 +72,8 @@ export function isRepoTracked(fullName) {
 
   return lower.startsWith(`${config.owner.toLowerCase()}/`);
 }
+
+module.exports = {
+  getTrackedRepos,
+  isRepoTracked,
+};

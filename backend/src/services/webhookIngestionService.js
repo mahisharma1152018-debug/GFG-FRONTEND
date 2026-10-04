@@ -1,12 +1,12 @@
-import PullRequest from "../models/PullRequest.js";
-import Review from "../models/Review.js";
-import ReviewComment from "../models/ReviewComment.js";
-import Issue from "../models/Issue.js";
-import IssueComment from "../models/IssueComment.js";
-import PRLabelEvent from "../models/PRLabelEvent.js";
-import Commit from "../models/Commit.js";
-import User from "../models/User.js";
-import ContributionEvent from "../models/ContributionEvent.js";
+const PullRequest = require("../models/PullRequest.js");
+const Review = require("../models/Review.js");
+const ReviewComment = require("../models/ReviewComment.js");
+const Issue = require("../models/Issue.js");
+const IssueComment = require("../models/IssueComment.js");
+const PRLabelEvent = require("../models/PRLabelEvent.js");
+const Commit = require("../models/Commit.js");
+const User = require("../models/User.js");
+const ContributionEvent = require("../models/ContributionEvent.js");
 
 const user = (value) => value && {
   githubId: value.id,
@@ -45,7 +45,7 @@ function prDocument(pr, payload, action, deliveryId) {
   };
 }
 
-export async function ingestGithubEvent(eventType, action, payload, deliveryId) {
+async function ingestGithubEvent(eventType, action, payload, deliveryId) {
   payload.deliveryId = deliveryId;
   const repository = repoInfo(payload);
   await saveUser(payload.sender);
@@ -106,3 +106,7 @@ export async function ingestGithubEvent(eventType, action, payload, deliveryId) 
     }
   }
 }
+
+module.exports = {
+  ingestGithubEvent,
+};

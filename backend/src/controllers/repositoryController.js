@@ -1,12 +1,12 @@
-import Repository from "../models/Repository.js";
-import PullRequest from "../models/PullRequest.js";
-import Commit from "../models/Commit.js";
+const Repository = require("../models/Repository.js");
+const PullRequest = require("../models/PullRequest.js");
+const Commit = require("../models/Commit.js");
 
 /*
  * GET /api/repositories
  * Every tracked repo with sync status and counts.
  */
-export async function getRepositories(req, res) {
+async function getRepositories(req, res) {
   try {
     const [repos, prCounts, commitCounts] = await Promise.all([
       Repository.find().sort({ fullName: 1 }).lean(),
@@ -31,3 +31,7 @@ export async function getRepositories(req, res) {
     res.status(500).json({ success: false, message: "Failed to fetch repositories" });
   }
 }
+
+module.exports = {
+  getRepositories,
+};

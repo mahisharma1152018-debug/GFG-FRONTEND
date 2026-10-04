@@ -8,7 +8,7 @@ const {
   userCommits, 
   userRepositories, 
   userActivity 
-} = require("../controllers/userController.js");
+} = require("../controllers/rawDataController.js");
 
 const router = express.Router();
 

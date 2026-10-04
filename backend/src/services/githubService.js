@@ -1,4 +1,4 @@
-import { getGithubConfig } from "../config/github.js";
+const { getGithubConfig } = require("../config/github.js");
 
 const BASE_URL = "https://api.github.com";
 const MAX_RATE_LIMIT_WAIT_MS = 10 * 60 * 1000;
@@ -86,11 +86,11 @@ async function githubRequestAll(path) {
 
 /* ---------- Repositories ---------- */
 
-export async function getRepository(owner, repo) {
+async function getRepository(owner, repo) {
   return githubRequest(`/repos/${owner}/${repo}`);
 }
 
-export async function getRepositoryCollaborators(owner, repo) {
+async function getRepositoryCollaborators(owner, repo) {
   return githubRequestAll(`/repos/${owner}/${repo}/collaborators?affiliation=all`);
 }
 
@@ -100,7 +100,7 @@ export async function getRepositoryCollaborators(owner, repo) {
  * - organization               -> /orgs/:org/repos
  * - another user               -> /users/:user/repos (public)
  */
-export async function listRepositories(owner) {
+async function listRepositories(owner) {
   let me = null;
   try {
     me = (await githubRequest("/user")).login;
@@ -124,11 +124,11 @@ export async function listRepositories(owner) {
 
 /* ---------- Pull requests ---------- */
 
-export async function getPullRequest(owner, repo, pullNumber) {
+async function getPullRequest(owner, repo, pullNumber) {
   return githubRequest(`/repos/${owner}/${repo}/pulls/${pullNumber}`);
 }
 
-export async function getAllPullRequests(owner, repo) {
+async function getAllPullRequests(owner, repo) {
   return githubRequestAll(
     `/repos/${owner}/${repo}/pulls?state=all&sort=created&direction=asc`
   );
@@ -138,7 +138,7 @@ export async function getAllPullRequests(owner, repo) {
  * Only PRs updated after `since` (newest first, stops early).
  * since = null => everything.
  */
-export async function getPullRequestsUpdatedSince(owner, repo, since) {
+async function getPullRequestsUpdatedSince(owner, repo, since) {
   const results = [];
   let page = 1;
 
@@ -161,39 +161,39 @@ export async function getPullRequestsUpdatedSince(owner, repo, since) {
   return results;
 }
 
-export async function getPullRequestFiles(owner, repo, pullNumber) {
+async function getPullRequestFiles(owner, repo, pullNumber) {
   return githubRequestAll(`/repos/${owner}/${repo}/pulls/${pullNumber}/files`);
 }
 
-export async function getPullRequestReviews(owner, repo, pullNumber) {
+async function getPullRequestReviews(owner, repo, pullNumber) {
   return githubRequestAll(`/repos/${owner}/${repo}/pulls/${pullNumber}/reviews`);
 }
 
-export async function getPullRequestReviewComments(owner, repo, pullNumber) {
+async function getPullRequestReviewComments(owner, repo, pullNumber) {
   return githubRequestAll(`/repos/${owner}/${repo}/pulls/${pullNumber}/comments`);
 }
 
-export async function getPullRequestCommits(owner, repo, pullNumber) {
+async function getPullRequestCommits(owner, repo, pullNumber) {
   return githubRequestAll(`/repos/${owner}/${repo}/pulls/${pullNumber}/commits`);
 }
 
 /* ---------- Issues & issue comments ---------- */
 
 // NOTE: GitHub's issues endpoint also returns PRs; callers must filter them out.
-export async function getIssuesSince(owner, repo, since) {
+async function getIssuesSince(owner, repo, since) {
   const query = `?state=all&sort=updated&direction=asc${since ? `&since=${encodeURIComponent(since.toISOString())}` : ""}`;
   return githubRequestAll(`/repos/${owner}/${repo}/issues${query}`);
 }
 
 // Covers comments on issues AND pull requests.
-export async function getIssueCommentsSince(owner, repo, since) {
+async function getIssueCommentsSince(owner, repo, since) {
   const query = since ? `?since=${encodeURIComponent(since.toISOString())}` : "";
   return githubRequestAll(`/repos/${owner}/${repo}/issues/comments${query}`);
 }
 
 /* ---------- Commits (default branch) ---------- */
 
-export async function getCommits(owner, repo, since) {
+async function getCommits(owner, repo, since) {
   const query = since ? `?since=${encodeURIComponent(since.toISOString())}` : "";
 
   try {
@@ -204,3 +204,19 @@ export async function getCommits(owner, repo, since) {
     throw error;
   }
 }
+
+module.exports = {
+  getRepository,
+  getRepositoryCollaborators,
+  listRepositories,
+  getPullRequest,
+  getAllPullRequests,
+  getPullRequestsUpdatedSince,
+  getPullRequestFiles,
+  getPullRequestReviews,
+  getPullRequestReviewComments,
+  getPullRequestCommits,
+  getIssuesSince,
+  getIssueCommentsSince,
+  getCommits,
+};

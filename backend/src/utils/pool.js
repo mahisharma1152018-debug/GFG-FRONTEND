@@ -1,7 +1,7 @@
 /*
  * Run fn over items with limited concurrency.
  */
-export async function mapLimit(items, limit, fn) {
+async function mapLimit(items, limit, fn) {
   const results = new Array(items.length);
   let next = 0;
 
@@ -19,3 +19,7 @@ export async function mapLimit(items, limit, fn) {
 
   return results;
 }
+
+module.exports = {
+  mapLimit,
+};

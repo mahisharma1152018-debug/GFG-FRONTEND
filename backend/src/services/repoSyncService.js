@@ -1,21 +1,21 @@
-import Repository from "../models/Repository.js";
-import Commit from "../models/Commit.js";
-import RepositoryMember from "../models/RepositoryMember.js";
-import Issue from "../models/Issue.js";
-import IssueComment from "../models/IssueComment.js";
-import PullRequest from "../models/PullRequest.js";
+const Repository = require("../models/Repository.js");
+const Commit = require("../models/Commit.js");
+const RepositoryMember = require("../models/RepositoryMember.js");
+const Issue = require("../models/Issue.js");
+const IssueComment = require("../models/IssueComment.js");
+const PullRequest = require("../models/PullRequest.js");
 
-import {
+const {
   getCommits,
   getPullRequestsUpdatedSince,
   getRepositoryCollaborators,
   getIssuesSince,
   getIssueCommentsSince,
-} from "./githubService.js";
+} = require("./githubService.js");
 
-import { syncPullRequest } from "./pullRequestSyncService.js";
-import { getTrackedRepos } from "./repoService.js";
-import { mapLimit } from "../utils/pool.js";
+const { syncPullRequest } = require("./pullRequestSyncService.js");
+const { getTrackedRepos } = require("./repoService.js");
+const { mapLimit } = require("../utils/pool.js");
 
 const OVERLAP_MS = 5 * 60 * 1000; // re-check a small window to be safe
 const PR_CONCURRENCY = 4;
@@ -23,7 +23,7 @@ const MEMBERS_REFRESH_MS = 24 * 60 * 60 * 1000; // collaborators rarely change
 
 let running = false;
 
-export function isSyncRunning() {
+function isSyncRunning() {
   return running;
 }
 
@@ -80,7 +80,7 @@ function normalizeCommit(fullName, repositoryId, c) {
 /*
  * Incremental commit sync for one repo (default branch).
  */
-export async function syncRepoCommits(repo, { full = false } = {}) {
+async function syncRepoCommits(repo, { full = false } = {}) {
   const startedAt = new Date();
 
   const state = await Repository.findOne({ fullName: repo.fullName }).lean();
@@ -122,7 +122,7 @@ export async function syncRepoCommits(repo, { full = false } = {}) {
 /*
  * Incremental PR sync for one repo.
  */
-export async function syncRepoPullRequests(repo, { full = false } = {}) {
+async function syncRepoPullRequests(repo, { full = false } = {}) {
   const startedAt = new Date();
 
   const state = await Repository.findOne({ fullName: repo.fullName }).lean();
@@ -176,7 +176,7 @@ const userFields = (u) => ({
 /*
  * Incremental issue sync (real issues only - GitHub mixes PRs into /issues).
  */
-export async function syncRepoIssues(repo, { full = false } = {}) {
+async function syncRepoIssues(repo, { full = false } = {}) {
   const startedAt = new Date();
   const state = await Repository.findOne({ fullName: repo.fullName }).lean();
   const repositoryId = repo.meta?.id ?? state?.githubId;
@@ -284,7 +284,7 @@ async function syncRepositoryMembers(repo, repositoryId) {
 /*
  * Sync everything for one repo.
  */
-export async function syncRepo(repo, options = {}) {
+async function syncRepo(repo, options = {}) {
   const startedAt = new Date();
 
   await Repository.updateOne(
@@ -370,7 +370,7 @@ export async function syncRepo(repo, options = {}) {
 /*
  * Sync every tracked repo. Only one run at a time.
  */
-export async function syncAllRepos(options = {}) {
+async function syncAllRepos(options = {}) {
   if (running) {
     return { skipped: true, reason: "A sync is already running" };
   }
@@ -395,3 +395,12 @@ export async function syncAllRepos(options = {}) {
     running = false;
   }
 }
+
+module.exports = {
+  isSyncRunning,
+  syncRepoCommits,
+  syncRepoPullRequests,
+  syncRepoIssues,
+  syncRepo,
+  syncAllRepos,
+};

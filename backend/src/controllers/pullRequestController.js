@@ -1,5 +1,5 @@
-import PullRequest from "../models/PullRequest.js";
-import { dateRange } from "../utils/dates.js";
+const PullRequest = require("../models/PullRequest.js");
+const { dateRange } = require("../utils/dates.js");
 
 /*
  * GET /api/pull-requests
@@ -9,7 +9,7 @@ import { dateRange } from "../utils/dates.js";
  *   since=ISO  until=ISO  (by PR creation date)
  *   page, limit       full=true (include raw GitHub payload)
  */
-export async function getAllPullRequests(req, res) {
+async function getAllPullRequests(req, res) {
   try {
     let page = Math.max(Number(req.query.page) || 1, 1);
     let limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 100);
@@ -59,7 +59,7 @@ export async function getAllPullRequests(req, res) {
 /*
  * GET /api/pull-requests/:owner/:repo/:number
  */
-export async function getPullRequestByNumber(req, res) {
+async function getPullRequestByNumber(req, res) {
   try {
     const { owner, repo } = req.params;
     const number = Number(req.params.number);
@@ -83,3 +83,8 @@ export async function getPullRequestByNumber(req, res) {
     res.status(500).json({ success: false, message: "Failed to fetch pull request" });
   }
 }
+
+module.exports = {
+  getAllPullRequests,
+  getPullRequestByNumber,
+};

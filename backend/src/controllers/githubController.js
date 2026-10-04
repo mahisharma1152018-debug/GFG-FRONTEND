@@ -1,13 +1,13 @@
-import WebhookEvent from "../models/WebhookEvent.js";
+const WebhookEvent = require("../models/WebhookEvent.js");
 
-import { syncPullRequest } from "../services/pullRequestSyncService.js";
-import {
+const { syncPullRequest } = require("../services/pullRequestSyncService.js");
+const {
   syncAllRepos,
   syncRepo,
   isSyncRunning,
-} from "../services/repoSyncService.js";
-import { getTrackedRepos, isRepoTracked } from "../services/repoService.js";
-import { ingestGithubEvent } from "../services/webhookIngestionService.js";
+} = require("../services/repoSyncService.js");
+const { getTrackedRepos, isRepoTracked } = require("../services/repoService.js");
+const { ingestGithubEvent } = require("../services/webhookIngestionService.js");
 
 const HANDLED_EVENTS = new Set([
   "pull_request",
@@ -21,7 +21,7 @@ const HANDLED_EVENTS = new Set([
 /*
  * GitHub webhook (works for repo-level AND organization-level webhooks).
  */
-export async function handleGithubWebhook(req, res) {
+async function handleGithubWebhook(req, res) {
   const deliveryId = req.headers["x-github-delivery"];
   const eventType = req.headers["x-github-event"];
 
@@ -105,7 +105,7 @@ export async function handleGithubWebhook(req, res) {
  *   ?full=true  -> ignore checkpoints, re-import everything
  *   ?wait=true  -> wait for completion (default: runs in background, returns 202)
  */
-export async function syncAll(req, res) {
+async function syncAll(req, res) {
   const full = req.query.full === "true";
   const wait = req.query.wait === "true";
 
@@ -134,7 +134,7 @@ export async function syncAll(req, res) {
 /*
  * POST /api/github/sync/:owner/:repo
  */
-export async function syncOneRepository(req, res) {
+async function syncOneRepository(req, res) {
   const { owner, repo } = req.params;
   const fullName = `${owner}/${repo}`;
 
@@ -159,7 +159,7 @@ export async function syncOneRepository(req, res) {
 /*
  * POST /api/github/sync/:owner/:repo/:number
  */
-export async function syncSinglePullRequest(req, res) {
+async function syncSinglePullRequest(req, res) {
   const { owner, repo } = req.params;
   const number = Number(req.params.number);
 
@@ -183,3 +183,10 @@ export async function syncSinglePullRequest(req, res) {
     });
   }
 }
+
+module.exports = {
+  handleGitHubWebhook: handleGithubWebhook,
+  syncAll,
+  syncOneRepository,
+  syncSinglePullRequest,
+};

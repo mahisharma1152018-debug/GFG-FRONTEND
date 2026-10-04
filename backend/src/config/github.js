@@ -9,7 +9,7 @@ const bool = (value) => String(value || "").toLowerCase() === "true";
 /*
  * Read lazily so it always reflects process.env after dotenv has loaded.
  */
-export function getGithubConfig() {
+function getGithubConfig() {
   const owner = process.env.GITHUB_OWNER;
   const repos = list(process.env.GITHUB_REPOS);
 
@@ -34,3 +34,7 @@ export function getGithubConfig() {
     syncIntervalMinutes: Number.isFinite(interval) ? interval : 10,
   };
 }
+
+module.exports = {
+  getGithubConfig,
+};

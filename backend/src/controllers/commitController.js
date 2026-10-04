@@ -1,10 +1,10 @@
-import Commit from "../models/Commit.js";
-import { dateRange } from "../utils/dates.js";
+const Commit = require("../models/Commit.js");
+const { dateRange } = require("../utils/dates.js");
 
 /*
  * GET /api/commits?repo=owner/name&author=login&since=&until=&page=&limit=
  */
-export async function getCommits(req, res) {
+async function getCommits(req, res) {
   try {
     const page = Math.max(Number(req.query.page) || 1, 1);
     const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 100);
@@ -39,3 +39,7 @@ export async function getCommits(req, res) {
     res.status(500).json({ success: false, message: "Failed to fetch commits" });
   }
 }
+
+module.exports = {
+  getCommits,
+};

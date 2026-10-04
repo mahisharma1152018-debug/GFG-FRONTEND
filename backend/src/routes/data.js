@@ -1,5 +1,5 @@
 const express = require("express");
-const { listCommits, listReviews, listReviewComments, listIssueComments, listIssues, listContributions, getById } = require("../controllers/dataController.js");
+const { listCommits, listReviews, listReviewComments, listIssueComments, listIssues, listContributions, getById } = require("../controllers/rawDataController.js");
 const Commit = require("../models/Commit.js");
 const Review = require("../models/Review.js");
 const ReviewComment = require("../models/ReviewComment.js");

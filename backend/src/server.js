@@ -1,9 +1,9 @@
-import "dotenv/config";
+require("dotenv/config");
 
-import app from "./app.js";
-import { connectDB } from "./config/db.js";
-import { validateEnv } from "./config/env.js";
-import { startScheduler } from "./services/scheduler.js";
+const app = require("./app.js");
+const connectDB = require("./config/db.js");
+const { validateEnv } = require("./config/env.js");
+const { startScheduler } = require("./services/scheduler.js");
 
 const PORT =
   process.env.PORT || 5000;

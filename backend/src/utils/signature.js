@@ -1,7 +1,7 @@
-import crypto from "crypto";
+const crypto = require("crypto");
 
 
-export function verifyGithubSignature(
+function verifyGithubSignature(
   rawBody,
   signature
 ) {
@@ -46,3 +46,7 @@ export function verifyGithubSignature(
     receivedBuffer
   );
 }
+
+module.exports = {
+  verifyGithubSignature,
+};

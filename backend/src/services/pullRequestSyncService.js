@@ -1,16 +1,16 @@
-import PullRequest from "../models/PullRequest.js";
-import Review from "../models/Review.js";
-import ReviewComment from "../models/ReviewComment.js";
+const PullRequest = require("../models/PullRequest.js");
+const Review = require("../models/Review.js");
+const ReviewComment = require("../models/ReviewComment.js");
 
-import {
+const {
   getPullRequest,
   getPullRequestFiles,
   getPullRequestReviews,
   getPullRequestReviewComments,
-} from "./githubService.js";
+} = require("./githubService.js");
 
 
-export async function syncPullRequest(
+async function syncPullRequest(
   owner,
   repo,
   pullNumber,
@@ -230,3 +230,7 @@ export async function syncPullRequest(
 
   return savedPR;
 }
+
+module.exports = {
+  syncPullRequest,
+};

@@ -1,4 +1,4 @@
-export function parseDate(value) {
+function parseDate(value) {
   if (!value) return null;
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;
@@ -7,7 +7,7 @@ export function parseDate(value) {
 /*
  * Build a Mongo range filter from ?since= & ?until=
  */
-export function dateRange(query) {
+function dateRange(query) {
   const since = parseDate(query.since || query.from);
   const until = parseDate(query.until || query.to);
 
@@ -18,3 +18,8 @@ export function dateRange(query) {
   if (until) range.$lte = until;
   return range;
 }
+
+module.exports = {
+  parseDate,
+  dateRange,
+};

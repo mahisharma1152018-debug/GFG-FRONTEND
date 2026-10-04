@@ -1,5 +1,5 @@
-import { getGithubConfig } from "../config/github.js";
-import { syncAllRepos } from "./repoSyncService.js";
+const { getGithubConfig } = require("../config/github.js");
+const { syncAllRepos } = require("./repoSyncService.js");
 
 async function run() {
   try {
@@ -16,7 +16,7 @@ async function run() {
   }
 }
 
-export function startScheduler() {
+function startScheduler() {
   const { syncIntervalMinutes } = getGithubConfig();
 
   if (!syncIntervalMinutes || syncIntervalMinutes <= 0) {
@@ -30,3 +30,7 @@ export function startScheduler() {
   setTimeout(run, 3000);
   setInterval(run, syncIntervalMinutes * 60 * 1000);
 }
+
+module.exports = {
+  startScheduler,
+};
