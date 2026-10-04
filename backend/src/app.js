@@ -9,6 +9,9 @@ const connectDB = require("./config/db");
 const badgeRoutes = require("./routes/badgeRoutes");
 const participantRoutes = require("./routes/participantRoutes");
 
+const initializeProductionBadges=require("./config/initBadges.js");
+const { initializeMidnightCronWorker }=require("./services/schedular.js");
+
 // 2. Import all your teammate's new GitHub tracking data route engines
 const githubRoutes = require("./routes/github.js");
 const pullRequestRoutes = require("./routes/pullRequests.js");
@@ -22,7 +25,10 @@ const authRoutes = require("./routes/auth.js");
 const app = express();
 
 // Establish the Database Connection preference
-connectDB();
+connectDB().then(()=>{
+  initializeProductionBadges();
+  initializeMidnightCronWorker(); //trigger automated workder initialzation on boot!
+});
 
 // 3. Mount teammate's security middleware
 app.set("trust proxy", 1);
