@@ -1,19 +1,15 @@
 /**
- * Single HTTP gateway for the whole application.
+ * HTTP gateway for the Express backend.
  *
- * Every backend call in the app goes through `api.get/post/put/patch/delete`.
- * Components never call fetch/axios directly, so swapping mock data for the
- * Express API is limited to this file plus the individual service modules.
- *
- * When VITE_API_BASE_URL is unset the app runs fully on the local mock layer.
+ * The backend mounts all application routes below /api and returns JSON
+ * envelopes such as { success: true, data: ... }. This gateway removes that
+ * transport envelope so the rest of the UI can work with domain objects.
  */
-
-const BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000').replace(/\/$/, '')
 
 export class ApiError extends Error {
   status: number
   details?: unknown
-
   constructor(message: string, status: number, details?: unknown) {
     super(message)
     this.name = 'ApiError'
@@ -22,12 +18,14 @@ export class ApiError extends Error {
   }
 }
 
-/** True when a real backend is configured; false => mock data layer. */
 export function isBackendConfigured(): boolean {
   return BASE_URL.length > 0
 }
 
-/** Artificial latency so loading states are visible during mock development. */
+export function getApiBaseUrl(): string {
+  return BASE_URL
+}
+
 export function mockLatency(ms = 380): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
@@ -44,37 +42,42 @@ function buildUrl(path: string, params?: Record<string, unknown>): string {
   return query ? `${url}?${query}` : url
 }
 
-async function request<T>(path: string, init?: RequestInit & { params?: Record<string, unknown> }): Promise<T> {
-  const { params, headers, ...rest } = init ?? {}
-
-  if (!isBackendConfigured()) {
-    throw new ApiError(
-      'Backend is not configured. Set VITE_API_BASE_URL or use the mock data layer.',
-      503,
-    )
+function unwrap<T>(payload: any): T {
+  if (payload && payload.success === false) {
+    throw new ApiError(payload.message ?? 'Request failed', 400, payload)
   }
+  if (payload && Object.prototype.hasOwnProperty.call(payload, 'data')) return payload.data as T
+  if (payload && Object.prototype.hasOwnProperty.call(payload, 'badges')) return payload.badges as T
+  if (payload && Object.prototype.hasOwnProperty.call(payload, 'leaderboard')) return payload.leaderboard as T
+  return payload as T
+}
 
+async function request<T>(
+  path: string,
+  init?: RequestInit & { params?: Record<string, unknown> },
+): Promise<T> {
+  const { params, headers, ...rest } = init ?? {}
   let response: Response
   try {
-    response = await fetch(buildUrl(path, params), {
+    response = await fetch(buildUrl(`/api${path.startsWith('/') ? path : `/${path}`}`, params), {
       ...rest,
-      headers: {
-        'Content-Type': 'application/json',
-        // TODO: Connect authentication — attach the GitHub OAuth session token.
-        ...headers,
-      },
+      credentials: 'include',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json', ...headers },
     })
   } catch (error) {
     throw new ApiError(error instanceof Error ? error.message : 'Network request failed', 0)
   }
 
+  const payload = await response.json().catch(() => undefined)
   if (!response.ok) {
-    const details = await response.json().catch(() => undefined)
-    throw new ApiError(`Request failed: ${response.status} ${response.statusText}`, response.status, details)
+    throw new ApiError(
+      payload?.message ?? `Request failed: ${response.status} ${response.statusText}`,
+      response.status,
+      payload,
+    )
   }
-
   if (response.status === 204) return undefined as T
-  return (await response.json()) as T
+  return unwrap<T>(payload)
 }
 
 export const api = {

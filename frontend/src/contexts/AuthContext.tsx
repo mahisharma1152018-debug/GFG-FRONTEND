@@ -1,6 +1,6 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
-import { getSession, signIn, signOut } from '@/services/auth.service'
+import { getSession, refreshSession, signIn, signOut } from '@/services/auth.service'
 import type { Session } from '@/services/auth.service'
 import type { User, UserRole } from '@/types'
 
@@ -24,6 +24,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Session is rehydrated synchronously from storage on first render.
   // TODO: Connect authentication — replace with the backend session query.
   const [session, setSession] = useState<Session | null>(() => getSession())
+
+  useEffect(() => {
+    refreshSession().then(setSession).catch(() => undefined)
+  }, [])
 
   const login = useCallback(async (role: UserRole = 'participant') => {
     const next = await signIn(role)

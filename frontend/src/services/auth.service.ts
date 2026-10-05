@@ -1,75 +1,47 @@
 import { CURRENT_USER_ID, MOCK_ADMINS, MOCK_USERS } from '@/data/mock/users'
 import type { User } from '@/types'
-import { api, isBackendConfigured, mockLatency } from './api'
+import { api, getApiBaseUrl, isBackendConfigured, mockLatency } from './api'
 
-/**
- * Session handling.
- *
- * Only the shape of GitHub OAuth is anticipated here — no real OAuth flow is
- * implemented. TODO: Connect authentication (GitHub OAuth via backend).
- */
+export interface Session { user: User; provider:'github'|'demo'; accessToken?:string }
+const STORAGE_KEY='gfg-hbf.session'
+function loadStored():Session|null { try { const raw=localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) as Session : null } catch { return null } }
+function persist(s:Session|null){ try { s ? localStorage.setItem(STORAGE_KEY,JSON.stringify(s)) : localStorage.removeItem(STORAGE_KEY) } catch {} }
+let memorySession:Session|null=loadStored()
+export function getSession(){ return memorySession }
 
-export interface Session {
-  user: User
-  provider: 'github' | 'demo'
-  accessToken?: string
-}
-
-const STORAGE_KEY = 'gfg-hbf.session'
-
-function loadStored(): Session | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? (JSON.parse(raw) as Session) : null
-  } catch {
-    return null
+function mapMe(data:any):User {
+  return {
+    id:String(data.participantId ?? data.githubId ?? data.username),
+    username:data.username, name:data.name ?? data.username, role:'participant',
+    githubUrl:data.profileUrl ?? `https://github.com/${data.username}`, avatarUrl:data.avatarUrl,
+    totalXp:Number(data.points ?? 0), rank:0, mergedPullRequests:0, projectsContributed:0,
+    streakDays:0, level:1, joinedAt:new Date().toISOString(), badges:[]
   }
 }
 
-function persist(session: Session | null): void {
+export async function refreshSession():Promise<Session|null> {
+  if (!isBackendConfigured()) return memorySession
   try {
-    if (session) localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
-    else localStorage.removeItem(STORAGE_KEY)
+    const me=await api.get<any>('/auth/me')
+    const session:Session={user:mapMe(me),provider:'github'}
+    memorySession=session; persist(session); return session
   } catch {
-    /* storage unavailable (private mode) — session stays in memory */
+    memorySession=null; persist(null); return null
   }
 }
 
-let memorySession: Session | null = loadStored()
-
-export function getSession(): Session | null {
-  return memorySession
-}
-
-export async function signIn(role: 'participant' | 'admin' = 'participant'): Promise<Session> {
+export async function signIn(role:'participant'|'admin'='participant'):Promise<Session> {
   if (isBackendConfigured()) {
-    // TODO: Connect authentication — exchange the GitHub code for a session.
-    const session = await api.post<Session>('/auth/github/callback', { role })
-    memorySession = session
-    persist(session)
-    return session
+    // Backend uses a browser redirect for OAuth; there is no POST callback endpoint.
+    window.location.assign(`${getApiBaseUrl()}/api/auth/github`)
+    return new Promise<Session>(()=>{})
   }
-
   await mockLatency(520)
-  const user =
-    role === 'admin'
-      ? MOCK_ADMINS[0]
-      : (MOCK_USERS.find((u) => u.id === CURRENT_USER_ID) ?? MOCK_USERS[0])
-
-  const session: Session = { user, provider: 'demo' }
-  memorySession = session
-  persist(session)
-  return session
+  const user=role==='admin' ? MOCK_ADMINS[0] : (MOCK_USERS.find(u=>u.id===CURRENT_USER_ID) ?? MOCK_USERS[0])
+  const session:Session={user,provider:'demo'}; memorySession=session; persist(session); return session
 }
-
-export async function signOut(): Promise<void> {
-  if (isBackendConfigured()) {
-    await api.post('/auth/logout').catch(() => undefined)
-  }
-  memorySession = null
-  persist(null)
+export async function signOut(){
+  if(isBackendConfigured()) await api.post('/auth/logout').catch(()=>undefined)
+  memorySession=null; persist(null)
 }
-
-export function isAuthenticated(): boolean {
-  return memorySession !== null
-}
+export function isAuthenticated(){ return memorySession!==null }

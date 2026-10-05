@@ -6,3 +6,6 @@ build/
 .vite/
 backend/src/seed.js
 backend_fixed_v2.zip
+frontend_review.zip
+frontend_backend_connected.zip
+frontend/BACKEND_INTEGRATION.md
