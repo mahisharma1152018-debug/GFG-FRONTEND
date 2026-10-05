@@ -353,3 +353,84 @@ If you want to extend the project, the most common integration points are:
 - add new Mongoose schemas under `src/models/`
 - add sync logic under `src/services/`
 - expose new endpoints in `src/routes/`
+
+## Architecture: tracker + participant/badge engine
+
+One process, one database, two halves:
+
+1. **GitHub tracker** - signed webhooks (`POST /api/github/webhook`) and a polling scheduler store
+   PRs, commits, reviews and issues in MongoDB.
+2. **Participant / badge engine** - `/api/participants`, `/api/badges`, `/api/leaderboard`.
+
+`services/participantSyncService.js` connects them. It reads the tracker's collections directly and
+recomputes a participant's stats, points, streaks and milestone badges from scratch (idempotent - retries
+and redeliveries never double count). It runs on login/register, `POST /api/participants/:id/sync`, after
+every relevant webhook (merged PR, push, review, closed issue), after each background sync, and for
+everyone via `POST /api/participants/admin/sync-all`.
+
+### Login and identity
+
+- `GET /api/auth/github` -> GitHub OAuth (scope `read:user` only - no e-mail). The callback **enrols or
+  links the participant**, counts today's login, and creates a session.
+- Sessions are stored in MongoDB (only a SHA-256 hash of the cookie token), so restarts and deploys do not
+  log anyone out. `GET /api/auth/me` answers from the database without calling GitHub.
+- A participant is identified by their **GitHub numeric id**. Once linked, only that id is used to match
+  PRs/reviews/issues.
+- Browsers on another origin: set `CORS_ORIGIN` (comma separated). Cross-origin writes with the cookie
+  from any other origin are rejected (CSRF).
+
+### Who can call what
+
+| Endpoint | Access |
+| --- | --- |
+| `GET` leaderboards, profiles, badges, tracker data | public (e-mail addresses are never returned) |
+| `POST /api/participants/register` | logged in; enrols **your own** account only |
+| `POST /:id/sync`, `PATCH /:id/activity` | that participant's own login, or admin |
+| `POST /api/participants/admin/*`, `POST /api/leaderboard`, `POST /api/github/sync*` | admin: header `x-sync-secret` (rate limited to 20/min) |
+
+Clients can only report `LOGIN` activity. Commit activity comes from GitHub data, so it cannot be faked.
+Concurrent requests (double clicks, webhook + scheduler) are serialised per participant and use conditional
+database updates, so points and badges are awarded once.
+
+### Points
+
+| Source | Points |
+| --- | --- |
+| Merged PR labelled `official-task` / `assigned-issue` | 50 |
+| Merged PR labelled `good-feature` / `intermediate` | 30 |
+| Any other merged PR | 10 |
+| Each day with at least one commit | 10 |
+| Each day with a recorded login | 5 |
+| Organiser bonus (`POST /api/leaderboard` `totalPoints`) | as given - kept across syncs |
+
+`issuesSolved` on the leaderboard = closed issues assigned to the participant (shown, not scored).
+
+### Running
+
+```bash
+npm install
+cp .env.example .env     # fill in the required values
+npm run dev              # or: npm start
+```
+
+`src/server.js` is the only entry point (validates env, connects, seeds badge definitions, starts the
+sync scheduler and the 00:00 IST streak reset). `src/app.js` only exports the Express app.
+
+Set your GitHub webhook to `POST /api/github/webhook` (content type `application/json`,
+secret = `GITHUB_WEBHOOK_SECRET`; events: pull requests, reviews, review comments, issues, issue comments, pushes).
+
+### Tests
+
+```bash
+npm test
+```
+
+The tests run against a throw-away MongoDB and **never** use `MONGODB_URI`. By default
+`mongodb-memory-server` downloads and starts a temporary `mongod` on first run (needs internet once).
+Alternatively point `MONGODB_TEST_URI` at a local MongoDB - its database name must contain `test`
+(e.g. `mongodb://127.0.0.1:27017/gfg_test`), otherwise the tests refuse to run.
+
+### One-off cleanup
+
+Older versions stored GitHub e-mail addresses. They are no longer stored or returned; to purge what is
+already in your database run `npm run scrub-emails`.

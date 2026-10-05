@@ -5,3 +5,4 @@ dist/
 build/
 .vite/
 backend/src/seed.js
+backend_fixed_v2.zip

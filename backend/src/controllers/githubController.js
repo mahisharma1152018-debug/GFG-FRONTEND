@@ -8,6 +8,7 @@ const {
 } = require("../services/repoSyncService.js");
 const { getTrackedRepos, isRepoTracked } = require("../services/repoService.js");
 const { ingestGithubEvent } = require("../services/webhookIngestionService.js");
+const { refreshParticipants } = require("../services/participantSyncService.js");
 
 const HANDLED_EVENTS = new Set([
   "pull_request",
@@ -17,6 +18,30 @@ const HANDLED_EVENTS = new Set([
   "issue_comment",
   "push",
 ]);
+
+/*
+ * Which participants could have earned something from this event?
+ *  - merged PR  -> PR author
+ *  - push       -> authors of the pushed commits (commit streaks)
+ *  - review     -> the reviewer (review count)
+ */
+function participantsAffected(eventType, action, payload) {
+  const who = (u) => (u ? { id: u.id, login: u.login } : null);
+
+  if (eventType === "pull_request" && action === "closed" && payload.pull_request?.merged) {
+    return [who(payload.pull_request.user)];
+  }
+  if (eventType === "push") {
+    return (payload.commits || []).map((c) => ({ login: c.author?.username }));
+  }
+  if (eventType === "pull_request_review") {
+    return [who(payload.review?.user)];
+  }
+  if (eventType === "issues" && action === "closed") {
+    return (payload.issue?.assignees || []).map(who);
+  }
+  return [];
+}
 
 /*
  * GitHub webhook (works for repo-level AND organization-level webhooks).
@@ -76,6 +101,9 @@ async function handleGithubWebhook(req, res) {
     if (eventType === "pull_request" && payload.pull_request?.number) {
       await syncPullRequest(owner, name, payload.pull_request.number, { lastWebhookAction: action, lastWebhookDeliveryId: deliveryId });
     }
+
+    // Keep the participant/badge engine in step with the tracker data we just stored.
+    await refreshParticipants(participantsAffected(eventType, action, payload));
 
     webhookEvent.status = "processed";
     webhookEvent.processedAt = new Date();

@@ -12,10 +12,15 @@ const participantSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    gihubId:{
+    // Numeric GitHub user id (same type the tracker's User/PullRequest collections use)
+    githubId: {
+      type: Number,
+      default: null,
+      index: true,
+    },
+    name: {
       type: String,
       trim: true,
-      default:null
     },
     points: {
       type: Number,
@@ -24,11 +29,18 @@ const participantSchema = new mongoose.Schema(
     stats: {
       mergedPRs: { type: Number, default: 0 },
       uniqueReposContributed: { type: Number, default: 0 },
-      loginStreak: { type: Number, default: 0 },   // New tracker
-      commitStreak: { type: Number, default: 0 },  // New tracker
+      loginStreak: { type: Number, default: 0 },
+      commitStreak: { type: Number, default: 0 },
+      codeReviews: { type: Number, default: 0 },
+      prPoints: { type: Number, default: 0 },      // points earned from merged PRs (label based)
+      issuesSolved: { type: Number, default: 0 },  // closed issues assigned to the participant
     },
 
-    contributeRepoList: [String],
+    // Points added by organisers (POST /api/leaderboard). Kept separate from `points`
+    // so a sync - which recomputes `points` from GitHub data - never wipes them.
+    bonusPoints: { type: Number, default: 0 },
+
+    contributedReposList: [String],
     // Track exact history to calculate streaks if needed
     activityLog: {
       loginDates: [String],  // Format: 'YYYY-MM-DD'

@@ -5,6 +5,13 @@ const { getById, getPRLabels, getPRLabelEvents, getPRReviews, getPRReviewComment
 
 const router = express.Router();
 
+router.param("id", (req, res, next, value) => {
+  if (!/^\d+$/.test(value)) {
+    return res.status(400).json({ success: false, message: "Invalid pull request id" });
+  }
+  next();
+});
+
 router.get("/", getAllPullRequests);
 router.get("/:id/labels", getPRLabels);
 router.get("/:id/label-events", getPRLabelEvents);

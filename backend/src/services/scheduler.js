@@ -1,5 +1,6 @@
 const { getGithubConfig } = require("../config/github.js");
 const { syncAllRepos } = require("./repoSyncService.js");
+const { syncAllParticipants } = require("./participantSyncService.js");
 
 async function run() {
   try {
@@ -11,6 +12,9 @@ async function run() {
     console.log(
       `[sync] ${summary.repositories} repos in ${((Date.now() - started) / 1000).toFixed(1)}s`
     );
+
+    const participants = await syncAllParticipants();
+    console.log(`[sync] participants refreshed: ${participants.synced}/${participants.total}`);
   } catch (error) {
     console.error("[sync] scheduled run failed:", error.message);
   }

@@ -12,6 +12,13 @@ const {
 
 const router = express.Router();
 
+router.param("githubId", (req, res, next, value) => {
+  if (!/^\d+$/.test(value)) {
+    return res.status(400).json({ success: false, message: "Invalid githubId" });
+  }
+  next();
+});
+
 router.get("/:githubId", getUser);
 router.get("/:githubId/contributions", userContributions);
 router.get("/:githubId/pull-requests", userPullRequests);

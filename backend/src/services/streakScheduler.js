@@ -1,18 +1,7 @@
 const cron = require("node-cron");
 const Participant = require("../models/Participant");
+const { getYesterdayFormatted } = require("./metricService");
 
-
-function getTargetDateStringIST(daysOffset = 0) {
-  // Create current date instance adjusted to Indian Standard Time (IST) offsets
-  const date = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
-  date.setDate(date.getDate() + daysOffset);
-  
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  
-  return `${year}-${month}-${day}`;
-}
 
 /**
  * Initializes the automated midnight cron task scheduler locked to IST
@@ -26,7 +15,7 @@ function initializeMidnightCronWorker() {
     
     try {
       // Calculate yesterday's date string in IST format to determine if a day was skipped
-      const yesterdayStr = getTargetDateStringIST(-1);
+      const yesterdayStr = getYesterdayFormatted();
       console.log(` Scanning active logs for missing date marker: "${yesterdayStr}"`);
 
       // Fetch all active participants from MongoDB Atlas directly from the primary node
@@ -71,5 +60,4 @@ function initializeMidnightCronWorker() {
 
 module.exports = {
   initializeMidnightCronWorker,
-  getTargetDateStringIST // Exported for automated unit testing checks
 };

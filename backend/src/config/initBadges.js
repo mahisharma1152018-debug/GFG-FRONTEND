@@ -6,7 +6,11 @@ const baselineBadges = [
   { key: "five-prs", name: "Open Source Champion", description: "Successfully merged 5 Pull Requests!", type: "MILESTONE", condition: { metric: "mergedPRs", operator: ">=", value: 5 } },
   { key: "three-repos", name: "Polyglot Contributor", description: "Merged Pull Requests across 3 different repositories!", type: "MILESTONE", condition: { metric: "uniqueReposContributed", operator: ">=", value: 3 } },
   { key: "daily-login", name: "Dedicated Developer", description: "Logged in every single day during the event window!", type: "MILESTONE", condition: { metric: "loginStreak", operator: ">=", value: 30 } },
-  { key: "daily-commit", name: "Unstoppable Force", description: "Committed code every single day of the event!", type: "MILESTONE", condition: { metric: "commitStreak", operator: ">=", value: 30 } }
+  { key: "daily-commit", name: "Unstoppable Force", description: "Committed code every single day of the event!", type: "MILESTONE", condition: { metric: "commitStreak", operator: ">=", value: 30 } },
+  // Rank badges are awarded dynamically by rankBadgeService (no condition)
+  { key: "rank-1", name: "Gold Champion", description: "Finished #1 on the leaderboard", type: "RANK", rank: 1 },
+  { key: "rank-2", name: "Silver Champion", description: "Finished #2 on the leaderboard", type: "RANK", rank: 2 },
+  { key: "rank-3", name: "Bronze Champion", description: "Finished #3 on the leaderboard", type: "RANK", rank: 3 },
 ];
 
 async function initializeProductionBadges() {
@@ -26,3 +30,4 @@ async function initializeProductionBadges() {
 }
 
 module.exports = initializeProductionBadges;
+module.exports.baselineBadges = baselineBadges;

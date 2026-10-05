@@ -12,7 +12,6 @@ const user = (value) => value && {
   githubId: value.id,
   username: value.login,
   name: value.name,
-  email: value.email,
   avatarUrl: value.avatar_url,
   profileUrl: value.html_url,
 };

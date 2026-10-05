@@ -2,7 +2,7 @@ const Participant = require("../models/Participant");
 
 async function updateRankBadges() {
   const participants = await Participant.find()
-    .sort({ points: -1 })
+    .sort({ points: -1, "stats.mergedPRs": -1, username: 1 }) // same tie-break as the leaderboard
     .select("_id points");
 
   const operations = participants.map((participant, index) => {

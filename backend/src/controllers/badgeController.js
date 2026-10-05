@@ -31,6 +31,10 @@ async function getParticipantBadges(req, res) {
   try {
     const { participantId } = req.params;
 
+    if (!/^[a-f\d]{24}$/i.test(participantId)) {
+      return res.status(400).json({ success: false, message: "Invalid participantId" });
+    }
+
     const participant = await Participant.findById(participantId);
 
     if (!participant) {
