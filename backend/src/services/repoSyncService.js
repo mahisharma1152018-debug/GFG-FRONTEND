@@ -17,6 +17,13 @@ const { syncPullRequest } = require("./pullRequestSyncService.js");
 const { getTrackedRepos } = require("./repoService.js");
 const { mapLimit } = require("../utils/pool.js");
 
+function safeSyncError(error) {
+  const status = Number(error?.status);
+  return Number.isInteger(status) && status >= 400 && status <= 599
+    ? `GitHub API request failed with HTTP ${status}`
+    : "Sync operation failed";
+}
+
 const OVERLAP_MS = 5 * 60 * 1000; // re-check a small window to be safe
 const PR_CONCURRENCY = 4;
 const MEMBERS_REFRESH_MS = 24 * 60 * 60 * 1000; // collaborators rarely change
@@ -140,7 +147,7 @@ async function syncRepoPullRequests(repo, { full = false } = {}) {
       await syncPullRequest(repo.owner, repo.name, pr.number);
       synced++;
     } catch (error) {
-      errors.push({ prNumber: pr.number, error: error.message });
+      errors.push({ prNumber: pr.number, error: safeSyncError(error) });
       console.error(`Failed ${repo.fullName}#${pr.number}: ${error.message}`);
     }
   });
@@ -304,21 +311,21 @@ async function syncRepo(repo, options = {}) {
     result.pullRequests = await syncRepoPullRequests(repo, options);
   } catch (error) {
     failure = error;
-    result.pullRequests = { error: error.message };
+    result.pullRequests = { error: safeSyncError(error) };
   }
 
   try {
     result.commits = await syncRepoCommits(repo, options);
   } catch (error) {
     failure = failure || error;
-    result.commits = { error: error.message };
+    result.commits = { error: safeSyncError(error) };
   }
 
   try {
     result.issues = await syncRepoIssues(repo, options);
   } catch (error) {
     failure = failure || error;
-    result.issues = { error: error.message };
+    result.issues = { error: safeSyncError(error) };
   }
 
   const membersDue =
@@ -331,13 +338,13 @@ async function syncRepo(repo, options = {}) {
       result.members = await syncRepositoryMembers(repo, repositoryId);
     } catch (error) {
       membersError = error;
-      result.members = { error: error.message };
+      result.members = { error: safeSyncError(error) };
     }
   }
 
   const prFailed = result.pullRequests?.failed > 0;
   const status = failure ? "failed" : prFailed || membersError ? "partial" : "success";
-  const errorMessage = failure?.message ?? (membersError ? `members: ${membersError.message}` : null);
+  const errorMessage = failure ? safeSyncError(failure) : (membersError ? `members: ${safeSyncError(membersError)}` : null);
 
   await Repository.updateOne(
     { fullName: repo.fullName },
@@ -384,7 +391,7 @@ async function syncAllRepos(options = {}) {
         results.push(await syncRepo(repo, options));
       } catch (error) {
         console.error(`Sync failed for ${repo.fullName}:`, error.message);
-        results.push({ repo: repo.fullName, status: "failed", error: error.message });
+        results.push({ repo: repo.fullName, status: "failed", error: safeSyncError(error) });
       }
     }
 

@@ -5,7 +5,7 @@ import { Container, Panel } from '@/components/ui/Panel'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { ButtonLink } from '@/components/ui/Button'
 import { TerminalWindow } from '@/components/github/TerminalWindow'
-import { SITE_CONFIG } from '@/config/site'
+import { EVENT_CONFIG, SITE_CONFIG } from '@/config/site'
 import { CommunityCta } from '@/components/home/CommunityCta'
 
 const VALUES = [
@@ -16,8 +16,8 @@ const VALUES = [
   },
   {
     icon: Users,
-    title: 'Community over solo runs',
-    text: 'Reviews, mentorship and documentation carry weight — open source is a team sport.',
+    title: 'Community without teams',
+    text: 'Reviews, mentorship and documentation help individual contributors ship stronger open-source work.',
   },
   {
     icon: Code2,
@@ -32,11 +32,8 @@ const VALUES = [
 ]
 
 const MILESTONES = [
-  { date: 'Sep 15', label: 'Registrations open', detail: 'GitHub sign-in and team formation' },
-  { date: 'Oct 01', label: 'Repositories published', detail: '12 repositories, 277 open issues' },
-  { date: 'Oct 15', label: 'Mid-festival check', detail: 'First leaderboard cut and mentor office hours' },
-  { date: 'Oct 28', label: 'Contributions close', detail: 'PRs must be merged by 23:59' },
-  { date: 'Oct 31', label: 'Results and awards', detail: 'Final ranks, badges and closing ceremony' },
+  { date: EVENT_CONFIG.startDateLabel, label: 'Event begins', detail: 'The seven-day individual contribution window opens' },
+  { date: EVENT_CONFIG.endDateLabel, label: 'Contributions close', detail: 'The individual contribution window ends' },
 ]
 
 const STACK = ['React', 'TypeScript', 'Vite', 'Tailwind CSS', 'Node.js', 'Express', 'MongoDB', 'GitHub API']
@@ -100,7 +97,7 @@ export default function About() {
           <div className="space-y-6">
             <TerminalWindow
               typed={false}
-              title="about · geekstober"
+              title="about · geektober"
               lines={[
                 { kind: 'command', text: 'cat manifest.md' },
                 { kind: 'output', text: `event: ${SITE_CONFIG.name}` },
@@ -129,18 +126,23 @@ export default function About() {
 
         <section className="mt-14" aria-labelledby="timeline-heading">
           <h2 id="timeline-heading" className="font-mono text-[11px] uppercase tracking-[0.28em] text-dim">
-            festival timeline
+            event timeline
           </h2>
-          <ol className="mt-5 grid gap-4 md:grid-cols-5">
+          <ol className="relative mt-7 ml-3 border-l border-brand/25 md:ml-6">
             {MILESTONES.map((milestone, index) => (
-              <Panel key={milestone.label} hover className="p-4">
-                <span className="font-mono text-[11px] text-brand-bright">
+              <li key={milestone.label} className="relative pb-8 pl-8 last:pb-0 sm:pl-10">
+                <span
+                  className="absolute -left-[13px] top-0 grid size-6 place-items-center rounded-full border border-brand/50 bg-void font-mono text-[9px] font-bold text-brand-bright shadow-[0_0_0_4px_rgba(5,11,20,0.95)] transition-transform duration-200 hover:scale-110"
+                  aria-hidden
+                >
                   {String(index + 1).padStart(2, '0')}
                 </span>
-                <p className="mt-1.5 font-mono text-sm font-bold text-ink">{milestone.date}</p>
-                <p className="mt-1 text-sm font-semibold text-muted">{milestone.label}</p>
-                <p className="mt-1 text-xs leading-relaxed text-dim">{milestone.detail}</p>
-              </Panel>
+                <div className="group rounded-xl border border-transparent px-3 py-1 transition-colors duration-200 hover:border-line hover:bg-white/[0.02] sm:px-4">
+                  <p className="font-mono text-xs font-bold uppercase tracking-[0.12em] text-brand-bright">{milestone.date}</p>
+                  <p className="mt-1.5 text-sm font-semibold text-ink">{milestone.label}</p>
+                  <p className="mt-1.5 max-w-2xl text-xs leading-relaxed text-dim">{milestone.detail}</p>
+                </div>
+              </li>
             ))}
           </ol>
         </section>

@@ -10,6 +10,25 @@ const { getTrackedRepos, isRepoTracked } = require("../services/repoService.js")
 const { ingestGithubEvent } = require("../services/webhookIngestionService.js");
 const { refreshParticipants } = require("../services/participantSyncService.js");
 
+const GITHUB_NAME = /^[A-Za-z0-9_.-]+$/;
+
+function syncErrorStatus(error) {
+  const status = Number(error?.status);
+  return Number.isInteger(status) && status >= 400 && status <= 599 ? 502 : 500;
+}
+function validRepoParams(req, res) {
+  const { owner, repo, number } = req.params;
+  if (!GITHUB_NAME.test(owner || '') || !GITHUB_NAME.test(repo || '')) {
+    res.status(400).json({ success: false, message: "Invalid GitHub repository identifier" });
+    return false;
+  }
+  if (number !== undefined && (!/^\d+$/.test(number) || Number(number) < 1)) {
+    res.status(400).json({ success: false, message: "Invalid pull request number" });
+    return false;
+  }
+  return true;
+}
+
 const HANDLED_EVENTS = new Set([
   "pull_request",
   "pull_request_review",
@@ -155,7 +174,7 @@ async function syncAll(req, res) {
     return res.json({ success: true, ...summary });
   } catch (error) {
     console.error("Repository sync failed:", error);
-    return res.status(500).json({ success: false, message: "Sync failed", error: error.message });
+    return res.status(syncErrorStatus(error)).json({ success: false, message: "GitHub synchronization failed" });
   }
 }
 
@@ -163,6 +182,7 @@ async function syncAll(req, res) {
  * POST /api/github/sync/:owner/:repo
  */
 async function syncOneRepository(req, res) {
+  if (!validRepoParams(req, res)) return;
   const { owner, repo } = req.params;
   const fullName = `${owner}/${repo}`;
 
@@ -180,7 +200,7 @@ async function syncOneRepository(req, res) {
     return res.json({ success: true, ...result });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ success: false, message: "Sync failed", error: error.message });
+    return res.status(syncErrorStatus(error)).json({ success: false, message: "GitHub synchronization failed" });
   }
 }
 
@@ -188,6 +208,7 @@ async function syncOneRepository(req, res) {
  * POST /api/github/sync/:owner/:repo/:number
  */
 async function syncSinglePullRequest(req, res) {
+  if (!validRepoParams(req, res)) return;
   const { owner, repo } = req.params;
   const number = Number(req.params.number);
 
@@ -204,10 +225,9 @@ async function syncSinglePullRequest(req, res) {
     return res.json({ success: true, message: "Pull request synchronized", data: saved });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({
+    return res.status(error.status >= 400 && error.status < 500 ? 502 : 500).json({
       success: false,
       message: "Failed to synchronize pull request",
-      error: error.message,
     });
   }
 }

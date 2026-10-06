@@ -101,24 +101,23 @@ async function getRepositoryCollaborators(owner, repo) {
  * - another user               -> /users/:user/repos (public)
  */
 async function listRepositories(owner) {
-  let me = null;
-  try {
-    me = (await githubRequest("/user")).login;
-  } catch {
-    // e.g. fine-grained token without /user access
+  const { ownerType } = getGithubConfig();
+
+  if (ownerType === 'organization') {
+    return githubRequestAll(`/orgs/${encodeURIComponent(owner)}/repos?type=all&sort=full_name`);
   }
 
-  if (me && me.toLowerCase() === owner.toLowerCase()) {
-    return githubRequestAll(
-      "/user/repos?affiliation=owner&visibility=all&sort=full_name"
-    );
+  if (ownerType === 'user') {
+    return githubRequestAll(`/users/${encodeURIComponent(owner)}/repos?type=owner&sort=full_name`);
   }
 
+  // Auto mode preserves support for personal accounts without masking a
+  // configured organization as a user. Only fall back after an org 404.
   try {
-    return await githubRequestAll(`/orgs/${owner}/repos?type=all`);
+    return await githubRequestAll(`/orgs/${encodeURIComponent(owner)}/repos?type=all&sort=full_name`);
   } catch (error) {
     if (error.status !== 404) throw error;
-    return githubRequestAll(`/users/${owner}/repos?type=owner`);
+    return githubRequestAll(`/users/${encodeURIComponent(owner)}/repos?type=owner&sort=full_name`);
   }
 }
 

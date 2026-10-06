@@ -14,8 +14,8 @@ import {
   Users,
 } from 'lucide-react'
 import { GithubIcon } from '@/components/ui/BrandIcons'
-import { MOCK_USERS } from '@/data/mock/users'
-import { EVENT_STATS } from '@/config/site'
+import { useEventStats } from '@/hooks/useEventStats'
+import { isBackendConfigured } from '@/services/api'
 
 const JOURNEY_STEPS = [
   {
@@ -52,37 +52,11 @@ const JOURNEY_STEPS = [
     num: 6,
     icon: BarChart3,
     title: 'Climb Leaderboard',
-    sub: 'Compete with other contributors',
+    sub: 'Compete as an individual',
   },
 ]
 
 const STAT_ICONS = [FolderGit2, AlertCircle, Users, Award]
-
-/** Avatar placeholder from user initials */
-function InitialAvatar({ name, index }: { name: string; index: number }) {
-  const initials = name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
-  const colors = ['#0D3B26', '#0A2E3A', '#1A1D0F', '#261A0D']
-  const textColors = ['#2EE59D', '#38BDF8', '#84CC16', '#FBBF24']
-  return (
-    <div
-      className="relative z-[10] grid size-6 shrink-0 place-items-center rounded-full font-mono text-[9px] font-bold"
-      style={{
-        background: colors[index % 4],
-        border: '1.5px solid rgba(46,229,157,0.3)',
-        color: textColors[index % 4],
-        marginLeft: index === 0 ? 0 : -8,
-        zIndex: 10 - index,
-      }}
-    >
-      {initials}
-    </div>
-  )
-}
 
 /**
  * "Your Open Source Journey" right panel.
@@ -90,10 +64,11 @@ function InitialAvatar({ name, index }: { name: string; index: number }) {
  * Stat tiles & participant strip display real values from the data layer.
  */
 export function JourneyPanel() {
-  const participantStat = EVENT_STATS.find((s) => s.id === 'participants')
-  const participantCountStr = participantStat
-    ? `${participantStat.value}${participantStat.suffix}`
-    : `${MOCK_USERS.length}+`
+  const { data: stats = [], isLoading } = useEventStats()
+  const backendConfigured = isBackendConfigured()
+  const displayStats = stats.length ? stats : Array.from({ length: 4 }, (_, index) => ({ id: `placeholder-${index}`, label: isLoading ? 'Loading' : 'Unavailable', value: 0, suffix: '', hint: '' }))
+  const participantStat = stats.find((s) => s.id === 'participants')
+  const participantCountStr = participantStat ? `${participantStat.value}${participantStat.suffix}` : '—'
 
   return (
    <motion.div
@@ -184,12 +159,12 @@ style={{
         </div>
       </div>
 
-      {/* Stat tiles (using real values from EVENT_STATS) */}
+      {/* Stat tiles use backend data when configured; placeholders never masquerade as live data. */}
       <div
         className="grid grid-cols-4 gap-1.5 px-3.5 py-2.5 sm:px-4"
         style={{ borderTop: '1px solid rgba(45,212,191,0.12)' }}
       >
-        {EVENT_STATS.map((stat, idx) => {
+        {displayStats.map((stat, idx) => {
           const Icon = STAT_ICONS[idx]
           return (
             <motion.div
@@ -204,7 +179,7 @@ style={{
                 className="font-mono text-[12.5px] font-bold leading-none sm:text-[13px]"
                 style={{ color: '#FFFFFF' }}
               >
-                {stat.value}{stat.suffix}
+                {isLoading ? '—' : `${stat.value}${stat.suffix}`}
               </span>
               <span
                 className="font-mono text-[8px] uppercase leading-tight sm:text-[8.5px]"
@@ -226,17 +201,12 @@ style={{
         style={{ borderTop: '1px solid rgba(45,212,191,0.12)', background: 'rgba(46,229,157,0.04)' }}
       >
         <div className="flex items-center gap-2">
-          {/* Overlapping avatars */}
-          <div className="flex items-center">
-            {MOCK_USERS.slice(0, 4).map((u, i) => (
-              <InitialAvatar key={u.id} name={u.name} index={i} />
-            ))}
-          </div>
-          <GithubIcon className="size-3.5" style={{ color: '#9FB0C3' }} />
+          <span className="grid size-7 shrink-0 place-items-center rounded-full border border-line bg-white/[0.03]">
+            <GithubIcon className="size-3.5" style={{ color: '#9FB0C3' }} />
+          </span>
           <p className="text-[10.5px] font-medium sm:text-[11px]" style={{ color: '#9FB0C3' }}>
-            Join{' '}
             <span style={{ color: '#FFFFFF', fontWeight: 600 }}>{participantCountStr}</span>{' '}
-            developers contributing this month.
+            {backendConfigured ? 'contributors taking part individually.' : 'demo contributor snapshot — connect the backend for live counts.'}
           </p>
         </div>
         <Link

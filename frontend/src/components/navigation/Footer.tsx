@@ -10,6 +10,7 @@ const COMMUNITY = [
   { label: 'Discord', href: SITE_CONFIG.discordUrl, icon: MessageCircle },
   { label: 'Instagram', href: SITE_CONFIG.instagramUrl, icon: InstagramIcon },
   { label: 'LinkedIn', href: SITE_CONFIG.linkedinUrl, icon: LinkedinIcon },
+  ...(SITE_CONFIG.whatsappUrl ? [{ label: 'WhatsApp', href: SITE_CONFIG.whatsappUrl, icon: MessageCircle }] : []),
 ]
 
 export function Footer() {

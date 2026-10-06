@@ -11,6 +11,25 @@ const STATE_COOKIE = "github_oauth_state";
 const githubHeaders = { Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" };
 const REQUEST_TIMEOUT_MS = 10000;
 
+function getAuthSuccessRedirect(req) {
+  const configuredFrontend = process.env.FRONTEND_URL || require("../config/cors").allowedOrigins()[0] || `${req.protocol}://${req.get("host")}`;
+  let base;
+  try {
+    base = new URL(configuredFrontend);
+  } catch {
+    base = new URL(`${req.protocol}://${req.get("host")}`);
+  }
+
+  const target = String(process.env.AUTH_SUCCESS_REDIRECT || "/");
+  try {
+    const parsed = new URL(target, base);
+    if (parsed.origin !== base.origin) return base.toString();
+    return parsed.toString();
+  } catch {
+    return new URL("/", base).toString();
+  }
+}
+
 const stateCookieOptions = () => ({
   httpOnly: true,
   sameSite: "lax",
@@ -112,7 +131,7 @@ async function githubCallback(req, res) {
 
   const token = await createSession({ githubId: profile.id, username: profile.login });
   res.cookie(SESSION_COOKIE, token, cookieOptions());
-  return res.redirect(process.env.AUTH_SUCCESS_REDIRECT || "/");
+  return res.redirect(getAuthSuccessRedirect(req));
 }
 
 /* Answers from the database only - no call to GitHub. */

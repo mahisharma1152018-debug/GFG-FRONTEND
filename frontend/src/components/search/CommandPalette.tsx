@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { CornerDownLeft, FileText, Search, Trophy, User, Boxes } from 'lucide-react'
@@ -38,6 +38,9 @@ const KIND_ICON = {
  */
 export function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [query, setQuery] = useState('')
+  const [activeIndex, setActiveIndex] = useState(0)
+  const inputRef = useRef<HTMLInputElement | null>(null)
+  const returnFocusRef = useRef<HTMLElement | null>(null)
   const debounced = useDebounce(query, 200)
   const navigate = useNavigate()
 
@@ -49,17 +52,29 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
 
   const close = () => {
     setQuery('')
+    setActiveIndex(0)
     onClose()
+    requestAnimationFrame(() => returnFocusRef.current?.focus?.())
   }
 
   useEffect(() => {
+    if (!open) {
+      if (document.activeElement instanceof HTMLElement) returnFocusRef.current = document.activeElement
+      return
+    }
+    requestAnimationFrame(() => inputRef.current?.focus())
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') close()
     }
-    if (open) document.addEventListener('keydown', onKey)
+    document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
+
+  useEffect(() => {
+    setActiveIndex(0)
+  }, [debounced])
+
 
   const results = useMemo<ResultItem[]>(() => {
     const q = debounced.trim().toLowerCase()
@@ -90,6 +105,10 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
     return [...projectItems, ...userItems, ...staticItems].slice(0, 10)
   }, [debounced, projects, participants])
 
+  useEffect(() => {
+    setActiveIndex((current) => Math.min(current, Math.max(results.length - 1, 0)))
+  }, [results.length])
+
   // Only show the skeleton while there is nothing to render yet — otherwise
   // background refetches would blank out results mid-typing.
   const loading =
@@ -104,7 +123,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
     <AnimatePresence>
       {open ? (
         <motion.div
-          className="fixed inset-0 z-[110] flex items-start justify-center overflow-y-auto bg-void/85 px-4 pt-[12vh] backdrop-blur-sm"
+          className="fixed inset-0 z-[110] flex items-start justify-center overflow-y-auto bg-[#030811]/80 px-4 pt-[10vh] backdrop-blur-md"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -121,19 +140,38 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.98 }}
             transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="w-full max-w-2xl overflow-hidden rounded-2xl border border-line-strong bg-coal shadow-[0_40px_90px_-50px_rgb(34_197_94_/_0.6)]"
+            className="w-full max-w-2xl overflow-hidden rounded-2xl border border-white/10 bg-[#09131f] shadow-[0_24px_70px_-38px_rgb(0_0_0_/_0.9)]"
           >
             <div className="flex items-center gap-3 border-b border-line px-4">
-              <Search className="size-4 shrink-0 text-brand-bright" aria-hidden />
+              <Search className="size-4 shrink-0 text-brand-bright/80" aria-hidden />
               <input
+                ref={inputRef}
                 autoFocus
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 onKeyDown={(event) => {
-                  if (event.key === 'Enter' && results[0]) go(results[0].href)
+                  if (!results.length) return
+                  if (event.key === 'ArrowDown') {
+                    event.preventDefault()
+                    setActiveIndex((current) => (current + 1) % results.length)
+                  } else if (event.key === 'ArrowUp') {
+                    event.preventDefault()
+                    setActiveIndex((current) => (current - 1 + results.length) % results.length)
+                  } else if (event.key === 'Home') {
+                    event.preventDefault()
+                    setActiveIndex(0)
+                  } else if (event.key === 'End') {
+                    event.preventDefault()
+                    setActiveIndex(results.length - 1)
+                  } else if (event.key === 'Enter') {
+                    event.preventDefault()
+                    go(results[activeIndex]?.href ?? results[0].href)
+                  }
                 }}
                 placeholder="Search projects, participants, problem statements..."
                 aria-label="Search"
+                aria-controls="search-results"
+                aria-activedescendant={results[activeIndex] ? `search-result-${results[activeIndex].id}` : undefined}
                 className="h-13 w-full bg-transparent py-4 text-sm text-ink placeholder:text-dim outline-none"
               />
               <kbd className="hidden rounded border border-line bg-white/[0.04] px-1.5 py-px font-mono text-[10px] text-dim sm:block">
@@ -141,7 +179,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
               </kbd>
             </div>
 
-            <div className="max-h-[52vh] overflow-y-auto p-2">
+            <div id="search-results" role="listbox" aria-label="Search results" className="max-h-[52vh] overflow-y-auto p-2">
               {loading ? (
                 <div className="space-y-1.5 p-2">
                   {Array.from({ length: 4 }).map((_, index) => (
@@ -153,14 +191,21 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
                   No matches for <span className="font-mono text-mint">&quot;{query}&quot;</span>
                 </p>
               ) : (
-                results.map((item) => {
+                results.map((item, index) => {
                   const Icon = KIND_ICON[item.kind]
                   return (
                     <button
                       key={item.id}
+                      id={`search-result-${item.id}`}
                       type="button"
+                      role="option"
+                      aria-selected={index === activeIndex}
+                      onMouseEnter={() => setActiveIndex(index)}
                       onClick={() => go(item.href)}
-                      className="group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition hover:bg-brand/10"
+                      className={cn(
+                        'group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition',
+                        index === activeIndex ? 'bg-brand/10' : 'hover:bg-brand/10',
+                      )}
                     >
                       <span className="grid size-8 shrink-0 place-items-center rounded-md border border-line bg-white/[0.03] text-muted group-hover:border-brand/40 group-hover:text-mint">
                         <Icon className="size-4" aria-hidden />
@@ -178,7 +223,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
 
             <div className="flex items-center justify-between border-t border-line px-4 py-2.5 font-mono text-[10.5px] text-dim">
               <span>↑↓ navigate · ⏎ open</span>
-              <span className={cn('text-brand-bright/70')}>gfg-hacktober://search</span>
+              <span className={cn('text-dim')}>GEEKTOBER SEARCH</span>
             </div>
           </motion.div>
         </motion.div>

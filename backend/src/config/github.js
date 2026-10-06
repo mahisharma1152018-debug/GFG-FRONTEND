@@ -16,9 +16,11 @@ function getGithubConfig() {
   const explicit = repos.length > 0 && !repos.includes("*");
 
   const interval = Number(process.env.SYNC_INTERVAL_MINUTES);
+  const ownerType = String(process.env.GITHUB_OWNER_TYPE || 'auto').toLowerCase();
 
   return {
     owner,
+    ownerType: ['organization', 'user', 'auto'].includes(ownerType) ? ownerType : 'auto',
     token: process.env.GITHUB_TOKEN,
 
     // null => discover every repo in the account

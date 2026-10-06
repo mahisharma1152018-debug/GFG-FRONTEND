@@ -50,7 +50,7 @@ const DEFAULTS: StatementForm = {
   title: '',
   description: '',
   projectId: '',
-  githubIssueUrl: 'https://github.com/gfg-hacktober-fest/',
+  githubIssueUrl: 'https://github.com/gfg-rbu/',
   difficulty: 'medium',
   contributionType: 'bug-fix',
   technology: 'TypeScript',

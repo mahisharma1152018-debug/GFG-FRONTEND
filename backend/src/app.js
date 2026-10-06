@@ -8,6 +8,8 @@ const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const { allowedOrigins } = require("./config/cors");
 const { scrubEmails } = require("./utils/scrub");
+const { routeSafety } = require("./middleware/routeSafety");
+const { jsonCache, invalidateOnMutation } = require("./middleware/jsonCache");
 
 // Badge & participant engine
 const badgeRoutes = require("./routes/badgeRoutes");
@@ -23,6 +25,7 @@ const dataRoutes = require("./routes/data.js");
 const issueRoutes = require("./routes/issues.js");
 const userRoutes = require("./routes/users.js");
 const authRoutes = require("./routes/auth.js");
+const statsRoutes = require("./routes/stats.js");
 
 const app = express();
 
@@ -73,7 +76,20 @@ app.use("/api", (req, res, next) => {
 // registered before express.json().
 app.use("/api/github/webhook", express.raw({ type: "application/json", limit: "25mb" }));
 app.use(express.json());
+app.use("/api", routeSafety);
+app.use("/api", invalidateOnMutation);
 app.use("/api", scrubEmails); // never return GitHub e-mail addresses
+
+// Public GET responses are cached in a small JSON file with a short TTL.
+// Authenticated/admin mutations invalidate the cache through invalidateOnMutation.
+app.use("/api/leaderboard", jsonCache);
+app.use("/api/participants/leaderboard", jsonCache);
+app.use("/api/participants/profile", jsonCache);
+app.use("/api/badges", jsonCache);
+app.use("/api/repositories", jsonCache);
+app.use("/api/contributors", jsonCache);
+app.use("/api/issues", jsonCache);
+app.use("/api/stats", jsonCache);
 
 app.use("/api/badges", badgeRoutes);
 app.use("/api/participants", participantRoutes);
@@ -87,6 +103,7 @@ app.use("/api/data", dataRoutes);
 app.use("/api/issues", issueRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/stats", statsRoutes);
 
 app.get("/health", (req, res) => {
   res.status(200).json({ success: true, status: "healthy" });

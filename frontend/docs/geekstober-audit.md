@@ -1,121 +1,39 @@
-# GEEKSTOBER — Phase 0 Audit
+# GEEKTOBER — Current Audit
 
-**Date:** 2026-10-03  
-**Branch:** `geekstober-redesign`
+**Date:** 2026-10-06
 
----
+## Event source of truth
 
-## 1. Routes & Page Mapping
+- Event: **GEEKTOBER**
+- Organizer: **GeeksforGeeks RBU Chapter**
+- Participation: **individual only**
+- Event window: **11 October 2026 through 17 October 2026**, inclusive
+- Timezone for event boundaries: **Asia/Kolkata**
+- Official GitHub organization: `https://github.com/gfg-rbu`
 
-| Screenshot nav item | Route | Status |
-|---|---|---|
-| Home | `/` → `pages/Home/Home.tsx` | ✅ Exists |
-| Projects | `/projects` → `pages/Projects/Projects.tsx` | ✅ Exists |
-| Leaderboard | `/leaderboard` → `pages/Leaderboard/Leaderboard.tsx` | ✅ Exists |
-| How It Works | `/how-it-works` → `pages/HowItWorks/HowItWorks.tsx` | ✅ Exists |
-| Rules | `/rules` → `pages/Rules/Rules.tsx` | ✅ Exists |
-| Badges | `/badges` → `pages/Badges/Badges.tsx` | ✅ Exists |
-| About | `/about` → `pages/About/About.tsx` | ✅ Exists |
-| My Progress | `/dashboard` (auth-gated) | ✅ Exists |
+## Routes
 
-All nav items have corresponding routes. No new static pages needed.
+The existing React Router structure includes public pages for Home, Projects, Leaderboard, How It Works, Rules, Badges, About, project details and profiles, plus authenticated participant and admin routes. A wildcard route renders the existing 404 page.
 
----
+## Key repairs
 
-## 2. Data Layer
+1. Centralized the event start/end boundaries in `src/config/site.ts` and derived the display date range, seven-day duration and event status from that configuration.
+2. Removed event team-registration/formation language and team data from visible participant/leaderboard mock UI.
+3. Reworked the About timeline into a connected responsive timeline using only the confirmed Oct 11 and Oct 17 milestones.
+4. Replaced outdated community URLs with the supplied official Discord, LinkedIn, Instagram and GitHub URLs. WhatsApp remains conditional on `VITE_WHATSAPP_URL`.
+5. Removed the hero-area GitHub organization button while retaining legitimate GitHub destination links elsewhere.
+6. Restyled the global search dialog with a restrained dark backdrop/dialog and removed the green glow. Added arrow-key/Home/End navigation, Enter-to-open, Escape-to-close and focus restoration behavior.
+7. Hardened backend route validation for GitHub owner/repository/PR parameters and request data.
+8. Fixed GitHub repository discovery for the configured `gfg-rbu` organization by supporting an explicit `GITHUB_OWNER_TYPE=organization` mode and avoiding an organization 404 being silently treated as a personal-account success.
+9. Added bounded JSON-file caching with TTL, entry/size limits, atomic replacement, malformed-cache recovery, serialized writes and mutation invalidation. Session-cookie requests are never served from the public cache.
+10. Added a live `GET /api/stats` endpoint for homepage counters, with mock statistics clearly treated as a development-only fallback.
+11. Fixed OAuth success redirection for split frontend/backend deployments and rejected cross-origin redirect targets.
 
-| Data | Source | Notes |
-|---|---|---|
-| Projects list | `src/data/mock/projects.ts` → `project.service.ts` | 12 projects in registry |
-| Leaderboard / users | `src/data/mock/users.ts` → `leaderboard.service.ts` | 20 participants |
-| Badges | `src/data/mock/badges.ts` → `badge.service.ts` | Various badges |
-| Analytics/Stats | `src/data/mock/analytics.ts` | Summary stats |
-| Scoring config | `src/data/mock/scoring.ts` | Centralized |
-| Event-level stats | `src/config/site.ts` → `EVENT_STATS` | 12 repos, 250 participants, 500 issues |
+## Verification limitations
 
-**Stats for stat tiles (from real data):**
-- Repositories: 12 (from MOCK_PROJECTS.length)
-- Participants: 20 mock users (config says 250+)
-- Open Issues: computed from mock projects' openIssues field
-- Badges: from mock badges data
+- Backend JavaScript syntax checks pass for every `src/**/*.js` file.
+- Full backend Jest tests could not run because backend dependencies were not installed and dependency installation timed out in the execution environment.
+- The frontend build could not complete for the same dependency-installation limitation; the available TypeScript compiler reached the project configuration but reported missing `vite/client` and Node type definitions from the incomplete local dependency tree.
+- GitHub endpoint construction was directly exercised with a mocked `fetch` and confirmed to request `/orgs/gfg-rbu/repos?...` in organization mode.
 
----
-
-## 3. Authentication
-
-- `AuthContext.tsx` exposes `{ user, isAuthenticated, role, login, logout }`.
-- `user.name`, `user.username` available for avatar chip.
-- Auth is currently mock (`auth.service.ts` — no real OAuth yet).
-- Avatar chip: shows initials from `user.name` (no avatarUrl in mock User type).
-- "My Progress" button routes to `/dashboard` when authenticated.
-
----
-
-## 4. Scoring
-
-- Scoring config is in `src/data/mock/scoring.ts`.
-- Intended base: Easy=10, Medium=30, Difficult=50 XP.
-- **Needs your decision:** Verify actual values in `scoring.ts` match intended values.
-
----
-
-## 5. What Is Working / Visual / Broken
-
-### Working
-- All routes render their pages.
-- Auth context with mock sign-in/sign-out.
-- Leaderboard search and sort.
-- Project listing, filters, project details.
-- Admin panel (all sub-routes).
-- Command palette search (Ctrl+K).
-- Responsive mobile drawer.
-
-### Visual Only (to be changed by this redesign)
-- Color palette: currently dark green (`#050805`, `#22c55e`). Needs to become deep navy + mint.
-- Hero: currently shows a GitBranch + Terminal visual. Needs pixel-art night scene.
-- Logo: currently "GFG HACKTOBERFER FEST". Needs to become "GEEKSTOBER / GFG STUDENT CHAPTER RBU".
-- Branding: "GFG Hacktober Fest" appears in `site.ts`, meta tags, footer, and page titles.
-- Font: no pixel font currently. Needs Pixelify Sans / Silkscreen for headings.
-- Background: plain dark green void. Needs deep navy night scene.
-
-### Broken / Missing
-- No real GitHub OAuth (mock only) — existing setup preserved.
-- No backend — all data is mock — preserved.
-- `favicon.svg` is a generic icon.
-
----
-
-## 6. Files to Touch
-
-### Phase 1 — Design tokens & fonts
-- `src/index.css` — color tokens, new navy palette, add pixel font
-- `index.html` — Google Fonts import, meta tags
-
-### Phase 2 — Branding
-- `src/config/site.ts` — SITE_CONFIG.name, tagline
-- `src/components/ui/Logo.tsx` — GEEKSTOBER logo with pixel-cat mascot
-- `src/components/navigation/Footer.tsx` — branding, disclaimer note
-
-### Phase 3 — Hero (major)
-- `src/components/hero/Hero.tsx` — replace terminal/git visual with pixel-art scene + journey panel
-- `src/components/hero/PixelScene.tsx` — new: SVG pixel-art background layers
-- `src/components/hero/JourneyPanel.tsx` — new: "Your Open Source Journey" right panel
-
-### Phase 4 — Navbar
-- `src/components/navigation/Navbar.tsx` — floating rounded navbar style
-
-### Phase 5 — Home page sections
-- `src/components/home/*.tsx` — restyle in navy theme
-
-### Phase 6 — Other pages
-- Pages in `src/pages/` — consistent dark navy theme
-
----
-
-## 7. Needs Your Decision
-
-1. **Scoring values:** Verify `src/data/mock/scoring.ts` matches Easy=10, Medium=30, Difficult=50 XP intended.
-2. **Real stat tile data:** The stat tiles should pull from real data layer; currently `EVENT_STATS` in `site.ts` has hardcoded numbers (12 repos, 250 participants, 500 issues). The mock data has 20 participants and 12 projects with varying open issues. A backend stat endpoint would resolve this.
-3. **GitHub OAuth:** Auth is fully mock. The login page shows "Continue with GitHub" but the flow is simulated. Any real OAuth setup would be a non-visual change.
-4. **Participant avatars:** `User` type has optional `avatarUrl`; mock data does not populate it. The bottom strip of the hero would use initials/pixel placeholders.
-5. **"About" page:** Route exists (`/about`) but content is minimal. No non-visual changes made.
+No real credentials were added to the project.

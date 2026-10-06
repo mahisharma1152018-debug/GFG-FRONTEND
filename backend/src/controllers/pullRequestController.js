@@ -1,6 +1,8 @@
 const PullRequest = require("../models/PullRequest.js");
 const { dateRange } = require("../utils/dates.js");
 
+const GITHUB_NAME = /^[A-Za-z0-9_.-]+$/;
+
 /*
  * GET /api/pull-requests
  *
@@ -64,7 +66,11 @@ async function getPullRequestByNumber(req, res) {
     const { owner, repo } = req.params;
     const number = Number(req.params.number);
 
-    if (!Number.isInteger(number)) {
+    if (!GITHUB_NAME.test(owner || "") || !GITHUB_NAME.test(repo || "")) {
+      return res.status(400).json({ success: false, message: "Invalid repository identifier" });
+    }
+
+    if (!Number.isInteger(number) || number < 1) {
       return res.status(400).json({ success: false, message: "Invalid pull request number" });
     }
 

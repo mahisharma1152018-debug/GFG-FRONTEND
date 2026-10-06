@@ -42,7 +42,7 @@ const DEFAULTS: ProjectForm = {
   name: '',
   tagline: '',
   description: '',
-  repositoryUrl: 'https://github.com/gfg-hacktober-fest/',
+  repositoryUrl: 'https://github.com/gfg-rbu/',
   adminName: '',
   adminUsername: '',
   category: 'Developer Tools',

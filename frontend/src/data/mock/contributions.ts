@@ -7,7 +7,7 @@ import type { Contribution, ContributionProgress, ProgressStage } from '@/types'
  * backend classifies a merged pull request.
  */
 
-const REPO = 'https://github.com/gfg-hacktober-fest'
+const REPO = 'https://github.com/gfg-rbu'
 
 export const MOCK_CONTRIBUTIONS: Contribution[] = [
   {

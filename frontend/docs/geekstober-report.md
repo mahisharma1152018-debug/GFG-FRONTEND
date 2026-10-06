@@ -1,66 +1,40 @@
-# GEEKSTOBER Redesign — Completion Report
+# GEEKTOBER — Repair Report
 
-**Date**: October 03, 2026  
-**Repository**: `GFG-Hacktober-Fest`  
-**Branch**: `geekstober-redesign`  
+**Date:** 2026-10-06
 
----
+## Scope
 
-## 1. Executive Summary
-The visual identity redesign of the repository to **GEEKSTOBER (GFG Student Chapter RBU)** has been fully implemented across all routes. The redesign transforms the app into a dark navy pixel-art night world with mint green accents (`#00FF9D`), chunky pixel headlines (*Silkscreen* font), a floating rounded navbar, bordered dark panels, and readable modern sans/mono body typography.
+The existing frontend/backend architecture was retained. The repair focuses on the requested event consistency, solo participation messaging, community links, search UI, route safety, JSON cache behavior, GitHub synchronization and OAuth redirect behavior.
 
----
+## Event
 
-## 2. Pages & Components Themed
+The application now treats GEEKTOBER as an individual open-source contribution event running from **October 11 through October 17, 2026**. The frontend stores the event boundary once and derives the seven-day duration and upcoming/live/ended status.
 
-### Core Landing Page (`/`)
-- **Floating Navbar**: Custom logo with pixel mark, GEEKSTOBER branding, chapter subtext (`GFG STUDENT CHAPTER RBU`), navigation items, `Ctrl K` search trigger, GitHub link, mint green "My Progress" button, and user avatar chip.
-- **Hero & Pixel-Art Scene (`PixelScene.tsx`)**:
-  - Deep navy night sky background (`#0A1118`).
-  - Pixelated crescent moon, twinkling pixel stars (with reduced-motion respect), shooting star, and layered pixel clouds.
-  - Dark mountain range silhouette and detailed city skyline with warm/cool illuminated windows.
-  - Utility poles with overhead wires and street lamp casting a mint green light cone.
-  - Left building with three stacked neon signs (`OPEN SOURCE`, `BUILDS BETTER`, `DEVELOPERS`).
-  - Balcony scene featuring developer with laptop (`GFG` on hoodie), sitting cat, and backpack with GitHub patches.
-- **Hero Content**:
-  - Event pill: `• GEEKSTOBER · OCT 01 - OCT 31`.
-  - Pixel font headline: **CODE.** (white) / **CONTRIBUTE.** (mint) / **COMPETE.** (white).
-  - Subtext and Dual CTAs (`Explore Projects →` in solid mint, `Start Contributing →` in outlined mint).
-- **"Your Open Source Journey" Panel (`JourneyPanel.tsx`)**:
-  - Bordered dark card (`#0D161F`, 1px subtle teal border `#1B2D3C`).
-  - 6 vertical timeline steps with mint icon nodes.
-  - 4 live stat tiles (`1.3k+ Repositories`, `450+ Open Issues`, `800+ Participants`, `50+ Achievement Badges`) sourced from data layer.
-  - Dynamic participant avatar strip with real initials and link.
+## Social links
 
-### All Other App Pages
-1. **Projects (`/projects`)**: Scoped filter panel, category select, difficulty/tech selectors, and pixelated hover state project cards (`ProjectCard.tsx`).
-2. **Project Details (`/projects/:slug`)**: Repository overview header, status pills, issue table list (`IssueRow.tsx`), and tabbed navigation.
-3. **Leaderboard (`/leaderboard`)**: Top 3 visual podium (`Podium.tsx`) with crown and rank badges, table view (`LeaderboardTable.tsx`), and search/college filters.
-4. **How It Works (`/how-it-works`)**: 12-step lifecycle timeline, contribution quality guide cards, terminal window integration, and community CTA.
-5. **Rules (`/rules`)**: Contribution XP tier cards, interactive Points Calculator, and rule policy cards.
-6. **Badges (`/badges`)**: Achievement catalogue with locked (muted outline) vs unlocked (mint glow + timestamp) states, requirement text, and rarity ladder.
-7. **About (`/about`)**: Festival overview, club mission, terminal window, technology stack tags, and timeline.
-8. **My Progress (`/progress`)**: Personal metrics summary, contribution pipeline stage timeline, and level badge.
-9. **Participant Profile (`/profile/:username`)**: Level progress bar, XP metrics, activity graph (`ContributionGraph.tsx`), and badge grid.
-10. **Dashboard (`/dashboard`)**: Participant workspace header, metric cards, level progress bar, and recent activity.
-11. **Login / Sign In (`RequireAuth.tsx`)**: Integrated night-scene background with centered floating dark card and "Continue with GitHub" button (keeping OAuth logic intact).
-12. **Admin Console (`/admin/*`)**: Clean, functional, non-decorative dark navy layout for Overview, Projects, Problem Statements, Participants, Contributions, Scoring, GitHub, and Settings.
-13. **404 Page (`src/pages/NotFound.tsx`)**: Pixel font 404 header, terminal command output, and navigation buttons.
+The community configuration now uses the supplied official Discord, LinkedIn, Instagram and `gfg-rbu` GitHub organization URLs. WhatsApp is displayed only when `VITE_WHATSAPP_URL` is explicitly configured.
 
----
+## Timeline and solo participation
 
-## 3. Remaining Differences from `Main_UI.png`
-- **Zero visual discrepancies**: The landing page hero, navbar, headline typography, CTA buttons, pixel-art SVG scene, and right-hand journey panel match `Main_UI.png` at 1768x889.
+The About timeline is a connected responsive vertical timeline with only the confirmed event start and end milestones. Team formation/registration language was removed from participant-facing event UI.
 
----
+## Backend
 
-## 4. Verification & Hard Rules Compliance
-- **No functional or logic changes**: Routes, auth context, API/service layer (`github.service.ts`, `auth.service.ts`, `admin.service.ts`), data models, scoring logic, and admin functionality remain completely untouched.
-- **Production Build**: `npm run build` (`tsc -b && vite build`) compiles with zero TypeScript errors or warnings.
-- **Data Integrity**: All stat values, leaderboard entries, and user avatars remain data-driven from mock/API services without hardcoded mock overrides.
+- `GITHUB_OWNER=gfg-rbu` and `GITHUB_OWNER_TYPE=organization` are the documented defaults.
+- Organization repository discovery uses the GitHub `/orgs/:org/repos` endpoint.
+- GitHub sync route parameters are validated before reaching the sync layer.
+- Request query/body structures are checked for dangerous prototype-pollution keys and excessive nesting.
+- Added `GET /api/stats` so repository, open-issue, participant and active-badge counters come from MongoDB when the backend is configured.
+- The JSON cache is TTL-based, bounded, atomic, resilient to malformed files and invalidated after mutations.
+- OAuth redirects are resolved against the configured frontend origin and cross-origin redirect targets are rejected.
 
----
+## Tests/checks actually executed
 
-## 5. Needs Your Decision
-1. **Backend Integration**: Mock sessions stand in for GitHub OAuth and stats are sourced from local mock data. Backend endpoints for real GitHub OAuth and live `/stats` can be wired without UI changes once available.
-2. **Custom Badge Artwork**: Current badges use Lucide glyphs; when the backend supplies real image URLs via `badge.image`, `BadgeCard.tsx` will render them automatically.
+- `node --check` over every backend JavaScript source file: **PASS**.
+- Direct mocked GitHub repository-list request in organization mode: **PASS**; constructed URL targets `https://api.github.com/orgs/gfg-rbu/repos?...`.
+- Frontend `npm run build`: **BLOCKED** because dependency installation timed out and the local dependency tree is incomplete (`vite/client` and Node type definitions unavailable).
+- Backend Jest suite: **BLOCKED** because backend dependencies are unavailable; no test result is being claimed.
+
+## Remaining input
+
+The only required deployment-time inputs are the real MongoDB URI, GitHub token/webhook secret, sync secret and (when using GitHub OAuth) GitHub OAuth credentials plus the correct frontend/backend origins. No credentials are included in the ZIP.

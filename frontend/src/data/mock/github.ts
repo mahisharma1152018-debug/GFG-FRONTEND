@@ -14,12 +14,12 @@ import type {
  * endpoint requires no component changes.
  */
 
-const ORG = 'https://github.com/gfg-hacktober-fest'
+const ORG = 'https://github.com/gfg-rbu'
 
 export const MOCK_REPOSITORIES: GitHubRepository[] = [
   {
     id: 'r-001',
-    fullName: 'gfg-hacktober-fest/codeflow',
+    fullName: 'gfg-rbu/codeflow',
     description: 'Open-source workflow automation for engineering teams.',
     htmlUrl: `${ORG}/codeflow`,
     stargazersCount: 1284,
@@ -31,7 +31,7 @@ export const MOCK_REPOSITORIES: GitHubRepository[] = [
   },
   {
     id: 'r-002',
-    fullName: 'gfg-hacktober-fest/patchsense',
+    fullName: 'gfg-rbu/patchsense',
     description: 'Local-first pull request reviewer with explainable suggestions.',
     htmlUrl: `${ORG}/patchsense`,
     stargazersCount: 2140,
@@ -43,7 +43,7 @@ export const MOCK_REPOSITORIES: GitHubRepository[] = [
   },
   {
     id: 'r-003',
-    fullName: 'gfg-hacktober-fest/pixelpilot',
+    fullName: 'gfg-rbu/pixelpilot',
     description: 'Accessible headless component library with a React adapter.',
     htmlUrl: `${ORG}/pixelpilot`,
     stargazersCount: 1760,
@@ -55,7 +55,7 @@ export const MOCK_REPOSITORIES: GitHubRepository[] = [
   },
   {
     id: 'r-004',
-    fullName: 'gfg-hacktober-fest/snipvault',
+    fullName: 'gfg-rbu/snipvault',
     description: 'Snippet manager with semantic search.',
     htmlUrl: `${ORG}/snipvault`,
     stargazersCount: 446,

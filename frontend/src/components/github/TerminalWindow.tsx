@@ -25,7 +25,7 @@ const KIND_CLASS: Record<TerminalLine['kind'], string> = {
  * Terminal window decoration — the core "open source atmosphere" element.
  * Purely presentational, announced as a live region only for typed mode.
  */
-export function TerminalWindow({ lines, className, title = 'geekstober — zsh', typed = true }: TerminalWindowProps) {
+export function TerminalWindow({ lines, className, title = 'geektober — zsh', typed = true }: TerminalWindowProps) {
   const [visibleCount, setVisibleCount] = useState(typed ? 0 : lines.length)
   const [typedText, setTypedText] = useState('')
 

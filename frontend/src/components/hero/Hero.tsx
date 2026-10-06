@@ -1,9 +1,11 @@
 import { motion } from 'framer-motion'
 import { Play } from 'lucide-react'
 import { GithubIcon } from '@/components/ui/BrandIcons'
-import { SITE_CONFIG } from '@/config/site'
+import { EVENT_CONFIG, SITE_CONFIG } from '@/config/site'
 import { PixelScene } from '@/components/hero/PixelScene'
 import { JourneyPanel } from '@/components/hero/JourneyPanel'
+
+const EVENT_COPY = <>Participate individually from <strong className="text-ink">{EVENT_CONFIG.dateLabel}</strong>: explore real repositories, solve issues, and submit open-source contributions. Every merged pull request earns XP and moves you up the leaderboard.</>
 
 /**
  * Landing hero component.
@@ -48,7 +50,7 @@ export function Hero() {
               className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em]"
               style={{ color: '#2EE59D' }}
             >
-              {SITE_CONFIG.name} · OCT 01 - OCT 31
+              {SITE_CONFIG.name} · {SITE_CONFIG.dates}
             </span>
           </motion.div>
 
@@ -88,8 +90,7 @@ export function Hero() {
             className="mt-2.5 text-[15px] sm:text-[17px] leading-relaxed"
             style={{ color: '#9FB0C3', maxWidth: '36rem' }}
           >
-            Explore real repositories, fix issues, ship features, improve documentation —
-            every merged pull request earns XP and moves you up the leaderboard.
+            {EVENT_COPY}
           </motion.p>
 
           {/* Buttons (24px below body, height 48-52px) */}

@@ -1,4 +1,4 @@
-# GEEKSTOBER: Visual Redesign of an Existing Project
+# GEEKTOBER: Visual Redesign of an Existing Project
 
 You are working on an **existing repository**. This is a visual and branding transformation, not a rebuild.
 
@@ -53,7 +53,7 @@ Define everything as theme tokens (Tailwind config and/or CSS variables), then r
 Build at a 1768 px wide viewport first and compare directly with the screenshot. Layout reference (at 1768 px): the navbar and content container sit about 120 px from each side; the right panel is about 500 px wide; the left column is about 565 px wide.
 
 ### 3.1 Navbar (floating, rounded, dark, thin border, sits over the scene)
-- Left: pixel-cat mascot logo, then "GEEKSTOBER" (bold, white) with "GFG STUDENT CHAPTER RBU" (small caps, muted) beneath it.
+- Left: pixel-cat mascot logo, then "GEEKTOBER" (bold, white) with "GFG STUDENT CHAPTER RBU" (small caps, muted) beneath it.
 - Center links: **Home** (active: mint text with a mint underline), Projects, Leaderboard, How It Works, Rules, Badges, About.
 - Right: a search field with a magnifier and a `Ctrl K` hint (keep any existing search behavior; if none exists, make the field open the existing project search or leave it as a styled link to `/projects`), a square GitHub icon button linking to the repository or event org, a solid mint **My Progress** button with a user icon (routes to the existing progress page), and a rounded avatar chip with the user's initials.
 - The avatar chip shows the real signed-in user's GitHub avatar or initials. "KS" in the screenshot is a placeholder, never hard-coded. When signed out, show the existing sign-in entry point in the same style instead.
@@ -61,7 +61,7 @@ Build at a 1768 px wide viewport first and compare directly with the screenshot.
 
 ### 3.2 Hero (full-bleed pixel-art night scene)
 **Left column**
-1. Event pill: outlined mint, monospace, a filled green dot, text `GEEKSTOBER · OCT 01 - OCT 31`.
+1. Event pill: outlined mint, monospace, a filled green dot, text `GEEKTOBER · OCT 11 - OCT 17, 2026`.
 2. Headline on three lines in the pixel font: `CODE.` (white), `CONTRIBUTE.` (mint), `COMPETE.` (white).
 3. Subheading in mint: **Turn open-source contributions into achievements.**
 4. Body in muted off-white: "Explore real repositories, fix issues, ship features, improve documentation — every merged pull request earns XP and moves you up the leaderboard."
@@ -96,7 +96,7 @@ How to build it:
 - Motion: very subtle star twinkle and an occasional shooting-star streak, plus a faint lamp glow. All of it must stop under `prefers-reduced-motion`. No parallax, no particle systems.
 
 ### 3.3 Below the hero
-The screenshot only shows the first screen. Keep every existing homepage section (featured projects, how it works, badges, leaderboard preview, call to action, footer) and restyle them in the same theme. Do not delete sections to resemble the screenshot, and do not add placeholder sections that the repo has no data for. The footer is dark navy with the GEEKSTOBER / GFG Student Chapter RBU branding and the existing links.
+The screenshot only shows the first screen. Keep every existing homepage section (featured projects, how it works, badges, leaderboard preview, call to action, footer) and restyle them in the same theme. Do not delete sections to resemble the screenshot, and do not add placeholder sections that the repo has no data for. The footer is dark navy with the GEEKTOBER / GFG Student Chapter RBU branding and the existing links.
 
 ## 4. Responsive behavior
 - Desktop (about 1280 px and up): the layout described above. Verify at 1768 px, 1440 px, and 1280 px.
@@ -115,7 +115,7 @@ Bring every existing page into the same visual system. Reuse existing components
 - Update empty, loading, and error states to the theme.
 
 ## 6. Branding
-- The primary event name is **GEEKSTOBER**, with **GFG STUDENT CHAPTER RBU** as the secondary line. Replace visible uses of "Hacktober", "Hacktober Fest", and "GFG Hacktober Fest" in UI text, page titles, meta tags, and footer.
+- The primary event name is **GEEKTOBER**, with **GFG STUDENT CHAPTER RBU** as the secondary line. Replace visible uses of "Hacktober", "Hacktober Fest", and "GFG Hacktober Fest" in UI text, page titles, meta tags, and footer.
 - Do **not** rename the repository, package name, route paths, environment variables, or code identifiers.
 - Show a small note in the footer: "Student-led event platform. Not an official GeeksforGeeks product." (Add only if no equivalent already exists.)
 

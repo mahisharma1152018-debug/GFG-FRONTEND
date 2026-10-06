@@ -73,7 +73,7 @@ export default function AdminParticipants() {
         <Panel className="overflow-hidden">
           <div className="hidden grid-cols-[1.5fr_1fr_110px_110px_100px_90px_120px] gap-4 border-b border-line px-5 py-3 font-mono text-[10.5px] uppercase tracking-[0.16em] text-dim lg:grid">
             <span>Participant</span>
-            <span>College / Team</span>
+            <span>College</span>
             <span className="text-right">Level</span>
             <span className="text-right">XP</span>
             <span className="text-right">Merged</span>
@@ -99,7 +99,6 @@ export default function AdminParticipants() {
 
                   <span className="truncate text-xs text-muted">
                     {participant.college ?? '—'}
-                    {participant.team ? ` · ${participant.team}` : ''}
                   </span>
 
                   <span className="font-mono text-xs text-muted lg:text-right">

@@ -1,4 +1,4 @@
-import { ArrowRight, Users } from 'lucide-react'
+import { ArrowRight, MessageCircle, Users } from 'lucide-react'
 import { GithubIcon } from '@/components/ui/BrandIcons'
 import { ButtonLink } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Panel'
@@ -45,8 +45,20 @@ export function CommunityCta() {
                 Find your project
               </ButtonLink>
               <ButtonLink href={SITE_CONFIG.discordUrl} target="_blank" size="lg" variant="outline" icon={<Users className="size-4" aria-hidden />}>
-                Join the community
+                Join Discord
               </ButtonLink>
+              {SITE_CONFIG.whatsappUrl ? (
+                <ButtonLink
+                  href={SITE_CONFIG.whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  size="lg"
+                  variant="outline"
+                  icon={<MessageCircle className="size-4" aria-hidden />}
+                >
+                  Join WhatsApp
+                </ButtonLink>
+              ) : null}
             </div>
 
             <p className="mt-8 font-mono text-[11.5px] text-dim">

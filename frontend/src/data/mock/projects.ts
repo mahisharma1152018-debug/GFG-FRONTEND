@@ -7,7 +7,7 @@ import type { ProblemStatement, Project } from '@/types'
  * in src/services/project.service.ts.
  */
 
-const ORG = 'https://github.com/gfg-hacktober-fest'
+const ORG = 'https://github.com/gfg-rbu'
 
 export const MOCK_PROJECTS: Project[] = [
   {

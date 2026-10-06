@@ -5,7 +5,7 @@ import { Container } from '@/components/ui/Panel'
 import { TerminalWindow } from '@/components/github/TerminalWindow'
 
 const LINES = [
-  { kind: 'command', text: 'geekstober open unknown-route' },
+  { kind: 'command', text: 'geektober open unknown-route' },
   { kind: 'output', text: 'fatal: route not found' },
   { kind: 'accent', text: 'hint: check /projects or /leaderboard' },
 ] as const

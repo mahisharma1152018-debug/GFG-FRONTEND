@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from 'framer-motion'
 import { LogOut, Menu, Search, ShieldCheck, User, X } from 'lucide-react'
-import { GithubIcon } from '@/components/ui/BrandIcons'
 import { NAV_ITEMS, SITE_CONFIG } from '@/config/site'
 import { useAuth } from '@/contexts/AuthContext'
 import { Logo } from '@/components/ui/Logo'
@@ -125,21 +124,6 @@ export function Navbar({ onSearchOpen }: { onSearchOpen: () => void }) {
             </kbd>
           </button>
 
-          {/* GitHub */}
-          <a
-            href={SITE_CONFIG.githubUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="GitHub organization"
-            className="grid size-8 place-items-center rounded-lg transition hover:text-[#2EE59D]"
-            style={{
-              border: '1px solid rgba(45,212,191,0.2)',
-              background: 'rgba(13,27,38,0.5)',
-              color: '#9FB0C3',
-            }}
-          >
-            <GithubIcon className="size-4" />
-          </a>
 
           {isAuthenticated && user ? (
             <>

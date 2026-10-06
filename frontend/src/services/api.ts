@@ -5,7 +5,7 @@
  * envelopes such as { success: true, data: ... }. This gateway removes that
  * transport envelope so the rest of the UI can work with domain objects.
  */
-const BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000').replace(/\/$/, '')
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 
 export class ApiError extends Error {
   status: number

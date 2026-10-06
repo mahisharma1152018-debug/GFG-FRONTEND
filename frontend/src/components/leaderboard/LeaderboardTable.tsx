@@ -92,9 +92,6 @@ export function LeaderboardTable({ entries, highlightUserId }: LeaderboardTableP
                     </span>
             <span className="block truncate font-mono text-[11.5px] text-dim">
   @{entry.user.username}
-  <span className="hidden sm:inline">
-    {entry.user.team ? ` · ${entry.user.team}` : ''}
-  </span>
 </span>
                   </span>
                 </span>

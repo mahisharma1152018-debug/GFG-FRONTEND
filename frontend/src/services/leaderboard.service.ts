@@ -21,7 +21,6 @@ function mapEntry(p: any, index: number): LeaderboardEntry {
       githubUrl: p.githubUrl ?? `https://github.com/${p.username}`,
       avatarUrl: p.avatarUrl,
       college: undefined,
-      team: undefined,
     },
     xp: Number(p.points ?? 0),
     mergedPullRequests: Number(p.stats?.mergedPRs ?? 0),

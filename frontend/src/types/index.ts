@@ -1,5 +1,5 @@
 /**
- * Domain model for GFG Hacktober Fest.
+ * Domain model for the GEEKTOBER event.
  *
  * Every shape here is the contract the Express/MongoDB backend will return,
  * so UI components only ever depend on these types (never on mock data).
@@ -48,7 +48,6 @@ export interface User {
   role: UserRole
   bio?: string
   college?: string
-  team?: string
   githubUrl: string
   avatarUrl?: string
   totalXp: number
@@ -68,7 +67,7 @@ export interface LeaderboardEntry {
   previousRank?: number
   user: Pick<
     User,
-    'id' | 'username' | 'name' | 'githubUrl' | 'avatarUrl' | 'college' | 'team'
+    'id' | 'username' | 'name' | 'githubUrl' | 'avatarUrl' | 'college'
   >
   xp: number
   mergedPullRequests: number

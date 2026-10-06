@@ -47,6 +47,7 @@ This project is designed to collect and query contribution history from GitHub a
 │   │   ├── pullRequestController.js
 │   │   ├── rawDataController.js
 │   │   ├── repositoryController.js
+│   │   ├── statsController.js
 │   │   └── ...
 │   ├── middleware/
 │   │   ├── githubWebhook.js
@@ -72,6 +73,7 @@ This project is designed to collect and query contribution history from GitHub a
 │   │   ├── issues.js
 │   │   ├── pullRequests.js
 │   │   ├── repositories.js
+│   │   ├── stats.js
 │   │   └── users.js
 │   ├── services/
 │   │   ├── githubService.js
@@ -108,6 +110,7 @@ Copy `.env.example` to `.env` and fill in the values before starting the applica
 | `MONGODB_URI` | Yes | MongoDB connection string. |
 | `GITHUB_WEBHOOK_SECRET` | Yes | Secret used to verify GitHub webhook payload signatures. |
 | `GITHUB_TOKEN` | Yes | GitHub personal access token used to query repository data. |
+| `GITHUB_OWNER_TYPE` | No | `organization`, `user`, or `auto`; use `organization` for `gfg-rbu`. |
 | `GITHUB_OWNER` | Yes | GitHub user or organization whose repositories should be tracked. |
 | `SYNC_SECRET` | Yes | Shared secret required for sync endpoints. |
 | `GITHUB_REPOS` | No | Comma-delimited repo list, or `*` to auto-discover every repo in the owner account. Default: `*`. |
@@ -118,7 +121,11 @@ Copy `.env.example` to `.env` and fill in the values before starting the applica
 | `GITHUB_CLIENT_ID` | No | OAuth app client ID for GitHub login. |
 | `GITHUB_CLIENT_SECRET` | No | OAuth app client secret for GitHub login. |
 | `GITHUB_OAUTH_REDIRECT_URI` | No | OAuth redirect URL. |
-| `AUTH_SUCCESS_REDIRECT` | No | Frontend redirect target after a successful auth callback. Default: `/`. |
+| `AUTH_SUCCESS_REDIRECT` | No | Relative frontend path after a successful auth callback. Default: `/`. Cross-origin targets are rejected. |
+| `FRONTEND_URL` | No | Frontend origin used for the OAuth success redirect when frontend and backend are separate. |
+| `JSON_CACHE_TTL_SECONDS` | No | TTL for public GET cache entries. Default: `60`. |
+| `JSON_CACHE_MAX_ENTRIES` | No | Maximum cached responses. Default: `250`. |
+| `JSON_CACHE_MAX_BYTES` | No | Maximum serialized cache size. Default: `5242880`. |
 
 ### Notes
 
@@ -208,6 +215,11 @@ These endpoints read stored GitHub data from MongoDB:
 - `GET /api/issues`
 - `GET /api/issues/:id`
 - `GET /api/contributions`
+
+### Event statistics
+
+- `GET /api/stats`
+  - Returns live repository, open-issue, participant and active-badge counts from MongoDB.
 
 ### Pull Requests
 

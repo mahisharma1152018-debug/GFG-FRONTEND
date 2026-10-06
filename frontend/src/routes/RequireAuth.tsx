@@ -142,7 +142,7 @@ export function RequireAuth({
             <div className="flex items-start gap-2.5 text-[13px] leading-relaxed text-muted">
               <Sparkles className="mt-0.5 size-3.5 shrink-0 text-mint" aria-hidden />
               <span>
-                Earn XP for merged PRs — the official <strong className="font-semibold text-ink">Geekstober</strong> table
+                Earn XP for merged PRs — the official <strong className="font-semibold text-ink">GEEKTOBER</strong> table
               </span>
             </div>
             <div className="flex items-start gap-2.5 text-[13px] leading-relaxed text-muted">

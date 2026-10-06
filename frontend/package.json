@@ -33,5 +33,5 @@
     "typescript": "~6.0.2",
     "vite": "^8.3.0"
   },
-  "description": "GFG Hacktober Fest — open-source contribution competition platform (React + TypeScript + Vite + Tailwind CSS)"
+  "description": "GEEKTOBER — open-source contribution competition platform (React + TypeScript + Vite + Tailwind CSS)"
 }

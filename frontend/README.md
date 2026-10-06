@@ -1,4 +1,4 @@
-# GFG Hacktober Fest — Competition Platform
+# GEEKTOBER — Competition Platform
 
 An **open-source contribution competition** portal: participants pick a repository, claim a problem
 statement, ship a pull request on GitHub, and earn XP, badges and leaderboard rank for effective,
@@ -86,18 +86,10 @@ export async function getProjects(filters: ProjectFilters) {
 }
 ```
 
-Set `VITE_API_BASE_URL=http://localhost:5000/api` in `.env` and the same components start calling
+Set `VITE_API_BASE_URL=http://localhost:5000` in `.env` and the same components start calling
 the Express API with no other changes.
 
-Integration points are marked in the source:
-
-```ts
-// TODO: Connect authentication (GitHub OAuth)
-// TODO: Connect leaderboard API
-// TODO: Connect GitHub webhook data
-// TODO: Connect admin CRUD API
-// TODO: Connect badge API
-```
+The frontend API gateway is ready for the Express backend. GitHub OAuth uses the browser redirect flow, while leaderboard, repository, issue, badge and contribution services use the backend when `VITE_API_BASE_URL` is configured. Mock data remains a local development fallback when that variable is unset.
 
 ### Scoring
 

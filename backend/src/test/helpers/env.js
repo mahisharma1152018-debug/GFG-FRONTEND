@@ -7,9 +7,12 @@ Object.assign(process.env, {
   SYNC_SECRET: "test-sync-secret",
   GITHUB_TOKEN: "test-token",
   GITHUB_OWNER: "gfg-test-org",
+  GITHUB_OWNER_TYPE: "organization",
   GITHUB_REPOS: "*",
   GITHUB_CLIENT_ID: "test-client-id",
   GITHUB_CLIENT_SECRET: "test-client-secret",
   CORS_ORIGIN: "",
   SYNC_INTERVAL_MINUTES: "0",
+  FRONTEND_URL: "http://localhost:5173",
+  AUTH_SUCCESS_REDIRECT: "/",
 });
