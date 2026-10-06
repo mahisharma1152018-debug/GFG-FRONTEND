@@ -3,7 +3,7 @@ import { useScoringConfig } from '@/hooks/useContributions'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { Container, Panel } from '@/components/ui/Panel'
 import { SectionHeading } from '@/components/ui/SectionHeading'
-import { PointsCalculator } from '@/components/rules/PointsCalculator'
+
 import { Skeleton } from '@/components/ui/Skeleton'
 import { CONTRIBUTION_TYPE_LABEL, DIFFICULTY_LABEL } from '@/utils/format'
 import type { ContributionType, Difficulty } from '@/types'
@@ -125,13 +125,7 @@ export default function Rules() {
           </div>
         </section>
 
-        {/* calculator */}
-        <section className="mt-14" aria-labelledby="calculator-heading">
-          <h2 id="calculator-heading" className="mb-5 font-mono text-[11px] uppercase tracking-[0.28em] text-dim">
-            estimate your reward
-          </h2>
-          <PointsCalculator />
-        </section>
+        
 
         {/* multipliers */}
         <section className="mt-14 grid gap-5 lg:grid-cols-2" aria-labelledby="multipliers-heading">
