@@ -63,7 +63,7 @@ export const SITE_CONFIG = {
   whatsappUrl: import.meta.env.VITE_WHATSAPP_URL ?? '',
   instagramUrl: 'https://www.instagram.com/gfg_campusbody_rbu?stkn=MWtzcGlyZmtqbW16cg==',
   linkedinUrl: 'https://www.linkedin.com/company/geeksforgeeks-rcoem-chapter/home/',
-  email: 'geektober@gfg.club.edu',
+  email: 'gfgrcoem@rknec.edu',
   venue: 'Open Source • Online + Campus Finals',
   dates: EVENT_CONFIG.shortDateLabel,
   edition: '2026 Edition',
