@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from 'framer-motion'
 import { LogOut, Menu, Search, ShieldCheck, User, X } from 'lucide-react'
-import { NAV_ITEMS, SITE_CONFIG } from '@/config/site'
+import { NAV_ITEMS} from '@/config/site'
 import { useAuth } from '@/contexts/AuthContext'
 import { Logo } from '@/components/ui/Logo'
 import { Avatar } from '@/components/ui/Avatar'
@@ -295,14 +295,14 @@ export function Navbar({ onSearchOpen }: { onSearchOpen: () => void }) {
                     Ctrl K
                   </kbd>
                 </button>
-                <Link
-                  to={isAuthenticated && role === 'admin' ? '/admin' : '/dashboard'}
-                  onClick={() => setMobileOpen(false)}
-                  className="rounded-lg px-3 py-2.5 text-center text-sm font-semibold"
-                  style={{ background: '#2EE59D', color: '#050B14' }}
-                >
-                  {isAuthenticated && role === 'admin' ? 'Admin Panel' : 'My Progress'}
-                </Link>
+<Link
+  to="/dashboard"
+  onClick={() => setMobileOpen(false)}
+  className="rounded-lg px-3 py-2.5 text-center text-sm font-semibold"
+  style={{ background: '#2EE59D', color: '#050B14' }}
+>
+  My Progress
+</Link>
               </div>
             </nav>
           </motion.div>

@@ -21,7 +21,7 @@ export function RequireAuth({
   role?: 'participant' | 'admin'
 }) {
   const { isAuthenticated, role: sessionRole, login } = useAuth()
-  const [pending, setPending] = useState<'participant' | 'admin' | null>(null)
+  const [pending, setPending] = useState<'participant' | null>(null)
 
   const authorized = isAuthenticated && (role === 'participant' || sessionRole === 'admin')
 
@@ -108,22 +108,6 @@ export function RequireAuth({
               }}
             >
               Continue with GitHub
-            </Button>
-
-            <Button
-              fullWidth
-              size="md"
-              variant="outline"
-              className="h-12 text-sm font-semibold"
-              icon={<ShieldCheck className="size-4" aria-hidden />}
-              loading={pending === 'admin'}
-              onClick={async () => {
-                setPending('admin')
-                await login('admin')
-                setPending(null)
-              }}
-            >
-              Sign in as maintainer (demo)
             </Button>
 
             <Link

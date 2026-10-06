@@ -22,7 +22,6 @@ const STATIC_RESULTS: ResultItem[] = [
   { id: 'nav-badges', label: 'Badges', sublabel: 'Achievement catalogue', href: '/badges', kind: 'page' },
   { id: 'nav-dashboard', label: 'My Dashboard', sublabel: 'Progress, streaks and contributions', href: '/dashboard', kind: 'page' },
   { id: 'nav-progress', label: 'Progress Tracker', sublabel: 'Issue → fork → PR → points', href: '/progress', kind: 'page' },
-  { id: 'nav-admin', label: 'Admin Panel', sublabel: 'Projects, problem statements, scoring', href: '/admin', kind: 'page' },
 ]
 
 const KIND_ICON = {
